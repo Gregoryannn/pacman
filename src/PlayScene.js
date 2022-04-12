@@ -8,11 +8,19 @@ function PlayScene(game) {
     this._pacman.setSpeed(1);
     this._pacman.requestNewDirection(DIRECTION_RIGHT);
 }
-
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
     this._pacman.tick();
 };
+
+PlayScene.prototype.draw = function(ctx) {
+
+};
+
+PlayScene.prototype.keyPressed = function(key) {
+
+};
+
 PlayScene.prototype.getReadyMessage = function() {
     return this._readyMessage;
 };
