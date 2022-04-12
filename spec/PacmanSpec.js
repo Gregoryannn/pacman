@@ -64,7 +64,15 @@ describe("PlayScene", function() {
                     var readyMessage = playScene.getReadyMessage();
                     expect(readyMessage.getTimeToHide()).toBeGreaterThan(0);
                 });
+
+                it("should initialize Pacman", function() {
+                    var pacman = playScene.getPacman();
+                    expect(pacman.getSpeed()).toBeGreaterThan(0);
+                    expect(pacman.getDirection()).toBeDefined();
+                });
+
             });
+
 
             describe("#tick", function() {
                 it("should delegate call to Ready message", function() {
@@ -82,9 +90,7 @@ describe("PlayScene", function() {
                     expect(pacman.tick).toHaveBeenCalled();
                 });
 
-
             });
-
 
 
 
@@ -125,5 +131,58 @@ describe("PlayScene", function() {
                     expect(readyMessage.getTimeToHide()).toEqual(0);
 
 
+                });
+            });
+
+
+
+            describe("ReadyMessage", function() {
+                describe("#hide", function() {
+                    it("should hide message", function() {
+                        var message = new ReadyMessage();
+                        message.setVisibilityDuration(10);
+                        expect(message.isVisible()).toBeTruthy();
+                        message.hide();
+                        expect(message.isVisible()).toBeFalsy();
+                    });
+                });
+            });
+
+            describe("Pacman", function() {
+                var game, playScene, pacman, INIT_X, INIT_Y, SPEED;
+
+                beforeEach(function() {
+                    game = new Game();
+                    playScene = new PlayScene(game);
+                    game.setScene(playScene);
+                    playScene.getReadyMessage().hide();
+                    pacman = playScene.getPacman();
+                    INIT_X = pacman.getX();
+                    INIT_Y = pacman.getY();
+                    SPEED = pacman.getSpeed();
+                });
+
+                it("can move right", function() {
+                    pacman.requestNewDirection(DIRECTION_RIGHT);
+                    game.tick();
+                    expect(pacman.getPosition()).toEqual({ x: INIT_X + SPEED, y: INIT_Y });
+                });
+
+                it("can move left", function() {
+                    pacman.requestNewDirection(DIRECTION_LEFT);
+                    game.tick();
+                    expect(pacman.getPosition()).toEqual({ x: INIT_X - SPEED, y: INIT_Y });
+                });
+
+                it("can move up", function() {
+                    pacman.requestNewDirection(DIRECTION_UP);
+                    game.tick();
+                    expect(pacman.getPosition()).toEqual({ x: INIT_X, y: INIT_Y - SPEED });
+                });
+
+                it("can move down", function() {
+                    pacman.requestNewDirection(DIRECTION_DOWN);
+                    game.tick();
+                    expect(pacman.getPosition()).toEqual({ x: INIT_X, y: INIT_Y + SPEED });
                 });
             });
