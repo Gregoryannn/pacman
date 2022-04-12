@@ -82,6 +82,16 @@ describe("PlayScene", function() {
                     expect(readyMessage.tick).toHaveBeenCalled();
                 });
 
+                describe("#draw", function() {
+                    it("should delegate call to scene", function() {
+                        var game = new Game();
+                        var scene = game.getScene();
+                        spyOn(scene, 'draw');
+                        var surface = {};
+                        game.draw(surface);
+                        expect(scene.draw).toHaveBeenCalledWith(surface);
+                    });
+                });
 
                 it("should delegate call to Pacman", function() {
                     var pacman = playScene.getPacman();
