@@ -32,6 +32,9 @@ PlayScene.prototype.draw = function(ctx) {
     for (var pellet in this._pellets) {
         this._pellets[pellet].draw(ctx);
     }
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].draw(ctx);
+    }
 
     this._gate.draw(ctx);
     this._drawScore(ctx);
@@ -63,6 +66,8 @@ PlayScene.prototype.getPacman = function() {
 PlayScene.prototype.loadMap = function(map) {
     this._walls = [];
     this._pellets = [];
+    this._ghosts = [];
+
     for (var row = 0; row < map.length; ++row) {
         for (var col = 0; col < map[row].length; ++col) {
             var tile = map[row][col];
@@ -86,7 +91,12 @@ PlayScene.prototype.loadMap = function(map) {
                 this._pacmanStartPosition = position;
                 this._pacman.setPosition(this._pacmanStartPosition);
 
+            } else if (tile == '1' || tile == '2' || tile == '3' || tile == '4') {
+                var ghost = new Ghost();
+                ghost.setPosition(position);
+                this._ghosts.push(ghost);
             }
+
         }
     }
 };
@@ -115,6 +125,9 @@ PlayScene.prototype.getPacmanStartPosition = function() {
 PlayScene.prototype.getGate = function() {
     return this._gate;
 };
+PlayScene.prototype.getGhosts = function() {
+    return this._ghosts;
+};
 PlayScene.prototype.getCurrentLevel = function() {
     return this._currentLevel;
 };
@@ -132,7 +145,7 @@ PlayScene.prototype._getMapForCurrentLevel = function() {
         return ['#############################',
             '#                           #',
             '# #### ###### ###### #### # #',
-            '# #  # #           # #  # # #',
+            '# #  # #     1     # #  # # #',
             '# #  # # # ##-## # # #  # # #',
             '# #### # # #   # # # #### # #',
             '#        # ##### #          #',
