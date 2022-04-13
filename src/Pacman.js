@@ -39,6 +39,7 @@ Pacman.prototype.tick = function() {
     if (!this._scene.getReadyMessage().isVisible()) {
         this._move(this._direction);
         this._handleCollisionsWithWalls();
+        this._handleCollisionsWithPellets();
     }
 };
 
@@ -94,15 +95,15 @@ Pacman.prototype._handleCollisionsWithWalls = function() {
 Pacman.prototype._getTouchedWall = function() {
     var walls = this._scene.getWalls();
     for (var wall in walls) {
-        if (this._collidedWithWall(walls[wall])) {
+        if (this._collidedWith(walls[wall])) {
             return walls[wall];
         }
     }
     return null;
 };
 
-Pacman.prototype._collidedWithWall = function(wall) {
-    return this._rect.intersectsRect(wall.getRect());
+Pacman.prototype._collidedWith = function(other) {
+    return this._rect.intersectsRect(other.getRect());
 };
 
 Pacman.prototype._resolveCollisionWithWall = function(wall) {
@@ -119,6 +120,18 @@ Pacman.prototype._resolveCollisionWithWall = function(wall) {
     }
     this._rect.move({ x: -moveX, y: -moveY });
 };
+
+Pacman.prototype._handleCollisionsWithPellets = function() {
+    var pellets = this._scene.getPellets();
+    for (var pellet in pellets) {
+        if (this._collidedWith(pellets[pellet])) {
+            this._scene.increaseScore(NORMAL_PELLET_VALUE);
+            this._scene.removePellet(pellets[pellet]);
+            return;
+        }
+    }
+};
+
 
 Pacman.prototype.draw = function(ctx) {
     ctx.fillStyle = "yellow";
