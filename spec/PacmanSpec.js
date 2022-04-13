@@ -61,22 +61,23 @@ describe("PlayScene", function() {
 
     describe("#loadMap", function() {
         it("sample map", function() {
-            var map = ['###',
+            var map = ['# .',
                 '#C#',
-                '###'
+                '##.'
             ];
+
+
             playScene.loadMap(map);
             var walls = playScene.getWalls();
-            expect(walls.length).toEqual(8);
+            expect(walls.length).toEqual(5);
 
-            expect(walls[0].getPosition()).toEqual({ x: 0, y: 0 });
-            expect(walls[1].getPosition()).toEqual({ x: TILE_SIZE, y: 0 });
-            expect(walls[2].getPosition()).toEqual({ x: TILE_SIZE * 2, y: 0 });
-            expect(walls[3].getPosition()).toEqual({ x: 0, y: TILE_SIZE });
-            expect(walls[4].getPosition()).toEqual({ x: TILE_SIZE * 2, y: TILE_SIZE });
+            expect(walls[1].getPosition()).toEqual({ x: 0, y: TILE_SIZE });
+            expect(walls[2].getPosition()).toEqual({ x: TILE_SIZE * 2, y: TILE_SIZE });
 
             expect(playScene.getPacmanStartPosition()).toEqual({ x: TILE_SIZE, y: TILE_SIZE });
 
+            var pellets = playScene.getPellets();
+            expect(pellets.length).toEqual(2);
         });
     });
 });
@@ -130,6 +131,10 @@ describe("When Play scene is just started", function() {
         expect(playScene.getPacman().getPosition()).toEqual(playScene.getPacmanStartPosition());
     });
 
+    it("Score should be 0", function() {
+        expect(playScene.getScore()).toEqual(0);
+    });
+
 });
 describe("When on Play scene and Ready message is visible", function() {
     it("Pacman should not move until Ready message is hidden", function() {
@@ -143,6 +148,7 @@ describe("When on Play scene and Ready message is visible", function() {
             '## ##',
             '#####'
         ];
+
         playScene.loadMap(map);
 
         var pacman = playScene.getPacman();
@@ -175,6 +181,7 @@ describe("ReadyMessage", function() {
         });
     });
 });
+
 describe("Pacman", function() {
     var SPEED = 2;
     var game, playScene, pacman, INIT_X, INIT_Y;
@@ -291,6 +298,7 @@ describe("When Pacman is collided with wall and stopped and then is given a new 
         expect(pacman.getCurrentSpeed()).toEqual(SPEED);
     });
 });
+
 describe("When Pacman is moving and is given a command to change direction", function() {
             describe("and this direction is blocked by a wall", function() {
                 it("Pacman's current direction shouldn't change", function() {
@@ -304,6 +312,7 @@ describe("When Pacman is moving and is given a command to change direction", fun
                         '## ##',
                         '#####'
                     ];
+
                     playScene.loadMap(map);
                     playScene.getReadyMessage().hide();
                     var pacman = playScene.getPacman();
@@ -321,5 +330,34 @@ describe("When Pacman is moving and is given a command to change direction", fun
                     expect(pacman.getCurrentSpeed()).toEqual(SPEED);
                     expect(pacman.getDirection()).toEqual(DIRECTION_LEFT);
                     expect(pacman.getPosition()).toEqual({ x: INIT_POS.x - SPEED * 2, y: INIT_POS.y });
+                });
+            });
+
+
+            describe("When Pacman collides with a pellet", function() {
+                var map = ['C..'];
+                var game, playScene, pacman;
+
+                beforeEach(function() {
+                    game = new Game();
+                    playScene = new PlayScene(game);
+                    game.setScene(playScene);
+                    playScene.loadMap(map);
+                    playScene.getReadyMessage().hide();
+                    pacman = playScene.getPacman();
+                    pacman.setSpeed(TILE_SIZE);
+                    pacman.requestNewDirection(DIRECTION_RIGHT);
+                });
+
+                it("score should increase by pellet's value", function() {
+                    expect(playScene.getScore()).toEqual(0);
+                    game.tick();
+                    expect(playScene.getScore()).toEqual(NORMAL_PELLET_VALUE);
+                });
+
+                it("pellet should disappear", function() {
+                    expect(playScene.getPellets().length).toEqual(2);
+                    game.tick();
+                    expect(playScene.getPellets().length).toEqual(1);
                 });
             });
