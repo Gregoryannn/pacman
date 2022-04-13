@@ -79,8 +79,10 @@ describe("PlayScene", function() {
             var pellets = playScene.getPellets();
             expect(pellets.length).toEqual(2);
             expect(playScene.getGate() instanceof Gate).toBeTruthy();
+
             var ghosts = playScene.getGhosts();
             expect(ghosts.length).toEqual(4);
+
             expect(ghosts[0].getName()).toEqual(GHOST_BLINKY);
             expect(ghosts[1].getName()).toEqual(GHOST_PINKY);
             expect(ghosts[2].getName()).toEqual(GHOST_INKY);
