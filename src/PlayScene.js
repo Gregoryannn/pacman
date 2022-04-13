@@ -3,19 +3,16 @@ var TILE_SIZE = 10;
 
 function PlayScene(game) {
     this._game = game;
-
     this._readyMessage = new ReadyMessage();
     this._readyMessage.setVisibilityDuration(50);
-
     this._pacman = new Pacman(this);
     this._pacman.setSpeed(2);
     this._pacman.requestNewDirection(DIRECTION_RIGHT);
-
     this._currentLevel = 1;
     this.loadMap(this._getMapForCurrentLevel());
-
     this._score = 0;
 }
+
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
     this._pacman.tick();
@@ -88,12 +85,22 @@ PlayScene.prototype.loadMap = function(map) {
                 gate.setPosition(position);
                 this._gate = gate;
             } else if (tile == 'C') {
-                this._pacmanStartPosition = position;
-                this._pacman.setPosition(this._pacmanStartPosition);
-
+                this._pacman.setStartPosition(position);
+                this._pacman.setPosition(position);
             } else if (tile == '1' || tile == '2' || tile == '3' || tile == '4') {
-                var ghost = new Ghost();
+                var name;
+                if (tile == '1') {
+                    name = GHOST_BLINKY;
+                } else if (tile == '2') {
+                    name = GHOST_PINKY;
+                } else if (tile == '3') {
+                    name = GHOST_INKY;
+                } else if (tile == '4') {
+                    name = GHOST_CLYDE;
+                }
+                var ghost = new Ghost(name);
                 ghost.setPosition(position);
+                ghost.setStartPosition(position);
                 this._ghosts.push(ghost);
             }
 
@@ -104,6 +111,7 @@ PlayScene.prototype.loadMap = function(map) {
 PlayScene.prototype.getWalls = function() {
     return this._walls;
 };
+
 PlayScene.prototype.getPellets = function() {
     return this._pellets;
 };
@@ -117,10 +125,6 @@ PlayScene.prototype.removePellet = function(pellet) {
     }
 };
 
-
-PlayScene.prototype.getPacmanStartPosition = function() {
-    return this._pacmanStartPosition;
-};
 
 PlayScene.prototype.getGate = function() {
     return this._gate;
@@ -147,7 +151,7 @@ PlayScene.prototype._getMapForCurrentLevel = function() {
             '# #### ###### ###### #### # #',
             '# #  # #     1     # #  # # #',
             '# #  # # # ##-## # # #  # # #',
-            '# #### # # #   # # # #### # #',
+            '# #### # # #234# # # #### # #',
             '#        # ##### #          #',
             '# ######## ##### ########## #',
             '#C  ................        #',
