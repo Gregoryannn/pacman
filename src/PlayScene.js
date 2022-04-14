@@ -1,86 +1,125 @@
-var TILE_SIZE = 10;
-
+var TILE_SIZE = 16;
 
 function PlayScene(game) {
     this._game = game;
+
     this._readyMessage = new ReadyMessage();
     this._readyMessage.setVisibilityDuration(50);
-    this._pacman = new Pacman(this);
-    this._pacman.setSpeed(2);
+    this._readyMessage.show();
+
+    this._pacman = new Pacman(this, game);
+    this._pacman.setSpeed(4);
     this._pacman.requestNewDirection(DIRECTION_RIGHT);
+
     this._currentLevel = 1;
     this.loadMap(this._getMapForCurrentLevel());
-    this._score = 0;
-}
 
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].setRandomDirectionNotBlockedByWall();
+    }
+
+    this._score = 0;
+    this._x = 50;
+    this._y = 50;
+}
+PlayScene.prototype.getX = function() {
+    return this._x;
+};
+PlayScene.prototype.getY = function() {
+    return this._y;
+};
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
     this._pacman.tick();
-};
 
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].tick();
+    }
+
+    for (var pellet in this._pellets) {
+        if (this._pellets[pellet] instanceof PowerPellet) {
+            this._pellets[pellet].tick();
+        }
+    }
+};
 PlayScene.prototype.draw = function(ctx) {
-    this._readyMessage.draw(ctx);
-    this._pacman.draw(ctx);
     for (var wall in this._walls) {
         this._walls[wall].draw(ctx);
     }
 
-
     for (var pellet in this._pellets) {
         this._pellets[pellet].draw(ctx);
     }
+
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].draw(ctx);
     }
 
+    this._pacman.draw(ctx);
+
     this._gate.draw(ctx);
     this._drawScore(ctx);
+    this._drawLives(ctx);
+    this._readyMessage.draw(ctx);
 };
-
 PlayScene.prototype._drawScore = function(ctx) {
-    var SCORE_X = 0;
-    var SCORE_Y = 200;
-    ctx.fillStyle = "red";
+    var SCORE_X = 55;
+    var SCORE_Y = 30;
+    ctx.fillStyle = "#dedede";
     ctx.font = "bold 14px 'Lucida Console', Monaco, monospace"
     var text = "SCORE: " + this._score;
     ctx.fillText(text, SCORE_X, SCORE_Y);
 };
+PlayScene.prototype._drawLives = function(ctx) {
+    var x = 55;
+    var width = 18
+    var y = 430;
 
-PlayScene.prototype.keyPressed = function(key) {
-
-    this._pacman.keyPressed(key);
-
+    for (var i = 0; i < this._pacman.getLivesCount(); ++i) {
+        ctx.drawImage(ImageManager.getImage('pacman_3l'), x + i * width, y);
+    }
 };
-
+PlayScene.prototype.keyPressed = function(key) {
+    this._pacman.keyPressed(key);
+};
 PlayScene.prototype.getReadyMessage = function() {
     return this._readyMessage;
 };
 PlayScene.prototype.getPacman = function() {
     return this._pacman;
 };
-
-
 PlayScene.prototype.loadMap = function(map) {
     this._walls = [];
     this._pellets = [];
     this._ghosts = [];
 
-    for (var row = 0; row < map.length; ++row) {
-        for (var col = 0; col < map[row].length; ++col) {
+    var numRows = map.length;
+    var numCols = map[0].length;
+
+    this._mapRows = numRows;
+    this._mapCols = numCols;
+
+    for (var row = 0; row < numRows; ++row) {
+        for (var col = 0; col < numCols; ++col) {
             var tile = map[row][col];
-            var position = { x: col * TILE_SIZE, y: row * TILE_SIZE };
+            var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
+
             if (tile == '#') {
-                var wall = new Wall();
+                var wall = new Wall(this._getWallImage(map, row, col), this);
                 wall.setPosition(position);
                 this._walls.push(wall);
             } else if (tile == '.') {
-                var pellet = new Pellet();
-                position.x += (TILE_SIZE - NORMAL_PELLET_SIZE) / 2 + 1;
-                position.y += (TILE_SIZE - NORMAL_PELLET_SIZE) / 2 + 1;
+                var pellet = new Pellet(this);
                 pellet.setPosition(position);
                 this._pellets.push(pellet);
+            } else if (tile == 'O') {
+                var powerPellet = new PowerPellet(this);
+                powerPellet.setPosition(position);
+                this._pellets.push(powerPellet);
             } else if (tile == '-') {
-                var gate = new Gate();
+                this._lairPosition = new Position(position.x, position.y + TILE_SIZE);
+
+                var gate = new Gate(this);
                 position.y += (TILE_SIZE - GATE_HEIGHT) / 2 + 1;
                 gate.setPosition(position);
                 this._gate = gate;
@@ -98,24 +137,86 @@ PlayScene.prototype.loadMap = function(map) {
                 } else if (tile == '4') {
                     name = GHOST_CLYDE;
                 }
-                var ghost = new Ghost(name);
+                var ghost = new Ghost(name, this);
                 ghost.setPosition(position);
                 ghost.setStartPosition(position);
                 this._ghosts.push(ghost);
             }
-
         }
     }
 };
+PlayScene.prototype._getWallImage = function(map, row, col) {
+    var numRows = map.length;
+    var numCols = map[0].length;
+    var lastRow = numRows - 1;
+    var lastCol = numCols - 1;
 
+    if ((col > 0 && col < lastCol) &&
+        (map[row][col - 1] == '#' && map[row][col + 1] == '#') &&
+        ((row == 0 || map[row - 1][col] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
+        return 'wall_h';
+    } else if ((row > 0 && row < lastRow) &&
+        (map[row - 1][col] == '#' && map[row + 1][col] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (col == lastCol || map[row][col + 1] != '#'))) {
+        return 'wall_v';
+    } else if ((col < lastCol && row < lastRow) &&
+        (map[row][col + 1] == '#' && map[row + 1][col] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (row == 0 || map[row - 1][col] != '#'))) {
+        return 'wall_tlc';
+    } else if ((col > 0 && row < lastRow) &&
+        (map[row][col - 1] == '#' && map[row + 1][col] == '#') &&
+        ((col == lastCol || map[row][col + 1] != '#') && (row == 0 || map[row - 1][col] != '#'))) {
+        return 'wall_trc';
+    } else if ((col < lastCol && row > 0) &&
+        (map[row][col + 1] == '#' && map[row - 1][col] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
+        return 'wall_blc';
+    } else if ((col > 0 && row > 0) &&
+        (map[row][col - 1] == '#' && map[row - 1][col] == '#') &&
+        ((col == lastCol || map[row][col + 1] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
+        return 'wall_brc';
+    } else if ((row < lastRow) &&
+        (map[row + 1][col] == '#') &&
+        ((row == 0 || map[row - 1][col] != '#') && (col == 0 || map[row][col - 1] != '#') && (col == lastCol || map[row][col + 1] != '#'))) {
+        return 'wall_t';
+    } else if ((row > 0) &&
+        (map[row - 1][col] == '#') &&
+        ((row == lastRow || map[row + 1][col] != '#') && (col == 0 || map[row][col - 1] != '#') && (col == lastCol || map[row][col + 1] != '#'))) {
+        return 'wall_b';
+    } else if ((col < lastCol) &&
+        (map[row][col + 1] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (row == 0 || map[row - 1][col] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
+        return 'wall_l';
+    } else if ((col > 0) &&
+        (map[row][col - 1] == '#') &&
+        ((col == lastCol || map[row][col + 1] != '#') && (row == 0 || map[row - 1][col] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
+        return 'wall_r';
+    } else if ((col > 0 && col < lastCol && row < lastRow) &&
+        (map[row][col - 1] == '#' && map[row][col + 1] == '#' && map[row + 1][col] == '#') &&
+        (row == 0 || map[row - 1][col] != '#')) {
+        return 'wall_mt';
+    } else if ((col > 0 && col < lastCol && row > 0) &&
+        (map[row][col - 1] == '#' && map[row][col + 1] == '#' && map[row - 1][col] == '#') &&
+        (row == lastRow || map[row + 1][col] != '#')) {
+        return 'wall_mb';
+    } else if ((row > 0 && row < lastRow && col < lastCol) &&
+        (map[row - 1][col] == '#' && map[row + 1][col] == '#' && map[row][col + 1] == '#') &&
+        (col == 0 || map[row][col - 1] != '#')) {
+        return 'wall_ml';
+    } else if ((row > 0 && row < lastRow && col > 0) &&
+        (map[row - 1][col] == '#' && map[row + 1][col] == '#' && map[row][col - 1] == '#') &&
+        (col == lastCol || map[row][col + 1] != '#')) {
+        return 'wall_mr';
+    }
+
+    return null;
+};
 PlayScene.prototype.getWalls = function() {
     return this._walls;
 };
-
 PlayScene.prototype.getPellets = function() {
     return this._pellets;
 };
-
 PlayScene.prototype.removePellet = function(pellet) {
     for (var i = 0; i < this._pellets.length; ++i) {
         if (this._pellets[i] === pellet) {
@@ -124,10 +225,15 @@ PlayScene.prototype.removePellet = function(pellet) {
         }
     }
 };
-
-
 PlayScene.prototype.getGate = function() {
     return this._gate;
+};
+/**
+ * Ghost Lair is a cell just under the cell where the gate is located.
+ * When ghosts are in Run Home state they move to lair cell for revival.
+ */
+PlayScene.prototype.getLairPosition = function() {
+    return this._lairPosition;
 };
 PlayScene.prototype.getGhosts = function() {
     return this._ghosts;
@@ -138,26 +244,113 @@ PlayScene.prototype.getCurrentLevel = function() {
 PlayScene.prototype.getScore = function() {
     return this._score;
 };
-
 PlayScene.prototype.increaseScore = function(amount) {
     this._score += amount;
+};
+PlayScene.prototype.placeGhostsToStartPositions = function() {
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].placeToStartPosition();
+    }
+};
+PlayScene.prototype.makeGhostsVulnerable = function() {
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].makeVulnerable();
+    }
+};
+
+PlayScene.prototype.getWidth = function() {
+    return this._mapCols * TILE_SIZE;
+};
+
+PlayScene.prototype.getHeight = function() {
+    return this._mapRows * TILE_SIZE;
+};
+
+PlayScene.prototype.getLeft = function() {
+    return 0;
+};
+
+PlayScene.prototype.getRight = function() {
+    return this.getWidth() - 1;
+};
+
+
+PlayScene.prototype.getTop = function() {
+    return 0;
+};
+
+PlayScene.prototype.getBottom = function() {
+    return this.getHeight() - 1;
 };
 
 PlayScene.prototype._getMapForCurrentLevel = function() {
     if (this._currentLevel == 1) {
-
-        return ['#############################',
-            '#                           #',
-            '# #### ###### ###### #### # #',
-            '# #  # #     1     # #  # # #',
-            '# #  # # # ##-## # # #  # # #',
-            '# #### # # #234# # # #### # #',
-            '#        # ##### #          #',
-            '# ######## ##### ########## #',
-            '#C  ................        #',
-            '#############################'
+        return ['###########################',
+            '#............#............#',
+            '#.####.#####.#.#####.####.#',
+            '#O#  #.#   #.#.#   #.#  #O#',
+            '#.####.#####.#.#####.####.#',
+            '#.........................#',
+            '#.######.#.#####.#.######.#',
+            '#........#...#...#........#',
+            '########.### # ###.########',
+            '       #.#   1   #.#       ',
+            '########.# ##-## #.########',
+            '        .  #234#  .        ',
+            '########.# ##### #.########',
+            '       #.#   C   #.#       ',
+            '########.# ##### #.########',
+            '#............#............#',
+            '#.###.######.#.######.###.#',
+            '#O..#.................#..O#',
+            '###.#.#.###########.#.#.###',
+            '#.....#......#......#.....#',
+            '#.##########.#.##########.#',
+            '#.........................#',
+            '###########################'
         ];
     }
-
     return [];
+};
+PlayScene.prototype.getWaypointsToLairForGhost = function(ghost) {
+    var result = [];
+    var from = [this.pxToCoord(ghost.getX()), this.pxToCoord(ghost.getY())];
+    var to = [this.pxToCoord(this._lairPosition.x), this.pxToCoord(this._lairPosition.y)];
+    var wayPoints = AStar(this._getGrid(), from, to);
+    for (var wp in wayPoints) {
+        result.push(new Position(wayPoints[wp][0] * TILE_SIZE, wayPoints[wp][1] * TILE_SIZE));
+    }
+    return result;
+};
+PlayScene.prototype._getGrid = function() {
+    var result = this._getEmptyGrid();
+    for (var i = 0; i < this._walls.length; ++i) {
+        var row = this.pxToCoord(this._walls[i].getY());
+        var col = this.pxToCoord(this._walls[i].getX());
+        result[row][col] = 1;
+    }
+    return result;
+};
+PlayScene.prototype.pxToCoord = function(px) {
+    return Math.floor(px / TILE_SIZE);
+};
+PlayScene.prototype._getEmptyGrid = function() {
+    var result = [];
+    for (var r = 0; r < this._mapRows; ++r) {
+        var row = [];
+        for (var c = 0; c < this._mapCols; ++c) {
+            row.push(0);
+        }
+        result.push(row);
+    }
+    return result;
+};
+PlayScene.prototype.getWallAtTile = function(col, row) {
+    var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
+    for (var wall in this._walls) {
+        if (this._walls[wall].getPosition().equals(position)) {
+            return this._walls[wall];
+        }
+    }
+    return null;
 };
