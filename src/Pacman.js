@@ -23,14 +23,18 @@ Pacman.prototype.requestNewDirection = function(direction) {
     this._sprite.setCurrentSpeed(this._sprite.getSpeed());
 };
 Pacman.prototype.tick = function() {
-    if (!this._scene.getReadyMessage().isVisible()) {
-        this._advanceFrame();
-        this._sprite.move(this._sprite.getDirection());
-        this._handleCollisionsWithWalls();
-        this._handleCollisionsWithPellets();
-        this._handleCollisionsWithGhosts();
+    if (this._scene.getReadyMessage().isVisible() ||
+        this._scene.getPointsMessage().isVisible()) {
+        return;
     }
+
+    this._advanceFrame();
+    this._sprite.move(this._sprite.getDirection());
+    this._handleCollisionsWithWalls();
+    this._handleCollisionsWithPellets();
+    this._handleCollisionsWithGhosts();
 };
+
 Pacman.prototype._advanceFrame = function() {
     this._frame++;
     if (this._frame >= this._frames.length) {
@@ -85,7 +89,7 @@ Pacman.prototype._handleCollisionsWithGhosts = function() {
                 return;
             } else if (ghost.getState() == GHOST_STATE_VULNERABLE) {
                 ghost.runHome();
-                this._scene.addScoreForEatenGhost();
+                this._scene.addScoreForEatenGhost(ghost);
             }
         }
     }
