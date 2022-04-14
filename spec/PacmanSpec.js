@@ -73,8 +73,7 @@ describe("PlayScene", function() {
             expect(walls[1].getPosition()).toEqual(new Position(0, TILE_SIZE));
             expect(walls[2].getPosition()).toEqual(new Position(TILE_SIZE * 2, TILE_SIZE));
 
-            expect(playScene.getPacman().getStartPosition()).toEqual(new Position(TILE_SIZE, TILE_SIZE));
-
+            expect(playScene.getPacman().getStartPosition()).toEqual({ x: TILE_SIZE, y: TILE_SIZE });
             var pellets = playScene.getPellets();
             expect(pellets.length).toEqual(4);
             expect(pellets[0] instanceof Pellet).toBeTruthy();
@@ -154,6 +153,7 @@ describe("When Play scene is just started", function() {
         expect(ghosts[0].getCurrentSpeed()).toBeGreaterThan(0);
     });
 });
+
 describe("When on Play scene and Ready message is visible", function() {
     var game, playScene;
 
@@ -189,6 +189,7 @@ describe("When on Play scene and Ready message is visible", function() {
         expect(ghosts[0].getPosition()).toEqual(ghosts[0].getStartPosition());
     });
 });
+
 describe("When on Play scene and Ready message is hidden", function() {
     it("Ghosts should move", function() {
         var game = new Game();
@@ -202,6 +203,7 @@ describe("When on Play scene and Ready message is hidden", function() {
         expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
     });
 });
+
 describe("ReadyMessage", function() {
     describe("#hide", function() {
         it("should hide message", function() {
@@ -213,6 +215,7 @@ describe("ReadyMessage", function() {
         });
     });
 });
+
 describe("Pacman", function() {
     var SPEED = 2;
     var game, playScene, pacman, INIT_X, INIT_Y;
@@ -259,6 +262,7 @@ describe("Pacman", function() {
         expect(pacman.getPosition()).toEqual(new Position(INIT_X, INIT_Y + SPEED));
     });
 });
+
 describe("Pacman shouldn't move through the walls", function() {
     var map = ['###',
         '#C#',
@@ -295,6 +299,7 @@ describe("Pacman shouldn't move through the walls", function() {
         expect(pacman.getPosition()).toEqual(INITIAL_POS);
     }
 });
+
 describe("When Pacman is collided with wall and stopped and then is given a new direction", function() {
     it("Pacman should regain its speed", function() {
         var SPEED = 2;
@@ -321,6 +326,7 @@ describe("When Pacman is collided with wall and stopped and then is given a new 
         expect(pacman.getCurrentSpeed()).toEqual(SPEED);
     });
 });
+
 describe("When Pacman is moving and is given a command to change direction", function() {
     describe("and this direction is blocked by a wall", function() {
         it("Pacman's current direction shouldn't change", function() {
@@ -380,6 +386,7 @@ describe("When Pacman collides with a pellet", function() {
         expect(playScene.getPellets().length).toEqual(1);
     });
 });
+
 describe("When Pacman collides with a power pellet", function() {
     var map = ['###########',
         '#CO12     #',
@@ -411,6 +418,7 @@ describe("When Pacman collides with a power pellet", function() {
         expect(ghostRunHome.getState()).toEqual(GHOST_STATE_RUN_HOME);
     });
 });
+
 describe("Ghost", function() {
     describe("#getRandomDirectionNotBlockedByWall", function() {
         var game, playScene;
@@ -485,6 +493,7 @@ describe("Ghost", function() {
         }
     });
 });
+
 describe("When Pacman touches a ghost", function() {
     var map = ['###########',
         '#C  1     #',
@@ -529,29 +538,35 @@ describe("When Pacman touches a ghost", function() {
             expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
         });
 
-        it("Ghosts should be in Normal state", function() {
-            var ghostVulnerable = playScene.getGhosts()[1];
-            ghostVulnerable.makeVulnerable();
-            var ghostRunHome = playScene.getGhosts()[2];
-            ghostRunHome.runHome();
-            game.tick();
-            expect(ghostVulnerable.getState()).toEqual(GHOST_STATE_NORMAL);
-            expect(ghostRunHome.getState()).toEqual(GHOST_STATE_NORMAL);
+        it("Ghosts should have non-zero speed", function() {
+            var ghosts = playScene.getGhosts();
+            expect(ghosts[0].getSpeed()).toBeGreaterThan(0);
         });
     });
 
-    describe("and ghost is vulnerable", function() {
-        beforeEach(function() {
-            ghost.makeVulnerable();
-        });
-
-        it('ghost should run home', function() {
-            expect(ghost.getState()).toEqual(GHOST_STATE_VULNERABLE);
-            game.tick();
-            expect(ghost.getState()).toEqual(GHOST_STATE_RUN_HOME);
-        });
+    it("Ghosts should be in Normal state", function() {
+        var ghostVulnerable = playScene.getGhosts()[1];
+        ghostVulnerable.makeVulnerable();
+        var ghostRunHome = playScene.getGhosts()[2];
+        ghostRunHome.runHome();
+        game.tick();
+        expect(ghostVulnerable.getState()).toEqual(GHOST_STATE_NORMAL);
+        expect(ghostRunHome.getState()).toEqual(GHOST_STATE_NORMAL);
     });
 });
+
+describe("and ghost is vulnerable", function() {
+    beforeEach(function() {
+        ghost.makeVulnerable();
+    });
+
+    it('ghost should run home', function() {
+        expect(ghost.getState()).toEqual(GHOST_STATE_VULNERABLE);
+        game.tick();
+        expect(ghost.getState()).toEqual(GHOST_STATE_RUN_HOME);
+    });
+});
+
 describe("When ghost is in Run Home state", function() {
     it("it should move directly to the lair (a cell beneath the gate) and once there return to Normal state", function() {
         var game = new Game();
@@ -608,6 +623,7 @@ describe("When ghost is in Run Home state", function() {
         expect(ghost.getDirection()).toEqual(DIRECTION_UP);
     });
 });
+
 describe("When vulnerable ghost collides with Pacman", function() {
     describe("and Pacman and a ghost move with normal speeds", function() {
         it("ghost should be at home in finite number of moves", function() {
