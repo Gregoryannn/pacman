@@ -21,6 +21,9 @@ function PlayScene(game) {
     this._score = 0;
     this._x = 50;
     this._y = 50;
+
+    this.setGhostScoreValue(200);
+    this._pointsMessage = new PointsMessage(this);
 }
 PlayScene.prototype.getX = function() {
     return this._x;
@@ -30,6 +33,7 @@ PlayScene.prototype.getY = function() {
 };
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
+    this._pointsMessage.tick();
     this._pacman.tick();
 
     for (var ghost in this._ghosts) {
@@ -60,6 +64,7 @@ PlayScene.prototype.draw = function(ctx) {
     this._gate.draw(ctx);
     this._drawScore(ctx);
     this._drawLives(ctx);
+    this._pointsMessage.draw(ctx);
     this._readyMessage.draw(ctx);
 };
 PlayScene.prototype._drawScore = function(ctx) {
@@ -241,11 +246,29 @@ PlayScene.prototype.getGhosts = function() {
 PlayScene.prototype.getCurrentLevel = function() {
     return this._currentLevel;
 };
+PlayScene.prototype.setGhostScoreValue = function(value) {
+    this._ghostScoreValue = value;
+    this._previousEatenGhostScoreValue = 0;
+};
+PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
+    var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
+    this.increaseScore(amount);
+    this._previousEatenGhostScoreValue = amount;
+
+    this._pointsMessage.setEatenGhost(ghost);
+    this._pointsMessage.setValue(amount);
+    this._pointsMessage.setPosition(this._pacman.getPosition());
+    this._pointsMessage.show();
+};
+
 PlayScene.prototype.getScore = function() {
     return this._score;
 };
 PlayScene.prototype.increaseScore = function(amount) {
     this._score += amount;
+};
+PlayScene.prototype.getPointsMessage = function() {
+    return this._pointsMessage;
 };
 PlayScene.prototype.placeGhostsToStartPositions = function() {
     for (var ghost in this._ghosts) {
@@ -257,32 +280,24 @@ PlayScene.prototype.makeGhostsVulnerable = function() {
         this._ghosts[ghost].makeVulnerable();
     }
 };
-
 PlayScene.prototype.getWidth = function() {
     return this._mapCols * TILE_SIZE;
 };
-
 PlayScene.prototype.getHeight = function() {
     return this._mapRows * TILE_SIZE;
 };
-
 PlayScene.prototype.getLeft = function() {
     return 0;
 };
-
 PlayScene.prototype.getRight = function() {
     return this.getWidth() - 1;
 };
-
-
 PlayScene.prototype.getTop = function() {
     return 0;
 };
-
 PlayScene.prototype.getBottom = function() {
     return this.getHeight() - 1;
 };
-
 PlayScene.prototype._getMapForCurrentLevel = function() {
     if (this._currentLevel == 1) {
         return ['###########################',
