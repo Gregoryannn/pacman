@@ -3,6 +3,7 @@ function Pacman(scene, game) {
     this._game = game;
     this._sprite = new Sprite(scene);
     this._sprite.setRect(new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE }));
+    this._visible = true;
 
     this._frames = [1, 2, 3, 2];
     this._frame = 0;
@@ -15,6 +16,15 @@ Pacman.prototype.setLivesCount = function(lives) {
 Pacman.prototype.getLivesCount = function() {
     return this._livesCount;
 };
+
+Pacman.prototype.setVisible = function(value) {
+    this._visible = value;
+};
+
+Pacman.prototype.isVisible = function() {
+    return this._visible;
+};
+
 Pacman.prototype.requestNewDirection = function(direction) {
     if (this._sprite.willCollideWithWallIfMovedInDirection(direction)) {
         return;
@@ -34,7 +44,6 @@ Pacman.prototype.tick = function() {
     this._handleCollisionsWithPellets();
     this._handleCollisionsWithGhosts();
 };
-
 Pacman.prototype._advanceFrame = function() {
     this._frame++;
     if (this._frame >= this._frames.length) {
@@ -94,7 +103,12 @@ Pacman.prototype._handleCollisionsWithGhosts = function() {
         }
     }
 };
+
 Pacman.prototype.draw = function(ctx) {
+    if (!this._visible) {
+        return;
+    }
+
     var x = this._scene.getX() + this.getX();
     var y = this._scene.getY() + this.getY();
 
