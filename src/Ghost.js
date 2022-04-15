@@ -31,15 +31,12 @@ function Ghost(name, scene) {
 Ghost.prototype.getName = function() {
     return this._name;
 };
-
 Ghost.prototype.setVisible = function(value) {
     this._visible = value;
 };
-
 Ghost.prototype.isVisible = function() {
     return this._visible;
 };
-
 Ghost.prototype.tick = function() {
     if (this._scene.getReadyMessage().isVisible() ||
         this._scene.getPointsMessage().isVisible()) {
@@ -187,8 +184,12 @@ Ghost.prototype.makeVulnerable = function() {
         this._state = GHOST_STATE_VULNERABLE;
         this.setCurrentSpeed(GHOST_SPEED_SLOW);
         this._vulnerableTimeLeft = this._vulnerabilityDuration;
+    } else if (this._state == GHOST_STATE_VULNERABLE) {
+        this._vulnerableTimeLeft = this._vulnerabilityDuration;
+        this._blink = false;
     }
 };
+
 Ghost.prototype.runHome = function() {
     this._state = GHOST_STATE_RUN_HOME;
     this.setCurrentSpeed(GHOST_SPEED_FAST);
@@ -196,7 +197,6 @@ Ghost.prototype.runHome = function() {
     this._currentWaypoint = this._wayPoints.shift();
     this.setPosition(this._currentWaypoint);
 };
-
 Ghost.prototype.draw = function(ctx) {
     if (!this._visible) {
         return;
