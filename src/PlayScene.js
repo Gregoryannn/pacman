@@ -7,7 +7,7 @@ function PlayScene(game) {
     this._readyMessage.setVisibilityDuration(50);
     this._readyMessage.show();
 
-    this._pacman = new Pacman(this, game);
+    this._pacman = new Pacman(this);
     this._pacman.setSpeed(4);
     this._pacman.requestNewDirection(DIRECTION_RIGHT);
 
@@ -19,34 +19,19 @@ function PlayScene(game) {
     }
 
     this._score = 0;
-    this._x = 50;
-    this._y = 50;
-
-    this.setGhostScoreValue(200);
-    this._pointsMessage = new PointsMessage(this);
 }
-PlayScene.prototype.getX = function() {
-    return this._x;
-};
-PlayScene.prototype.getY = function() {
-    return this._y;
-};
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
-    this._pointsMessage.tick();
     this._pacman.tick();
 
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].tick();
     }
-
-    for (var pellet in this._pellets) {
-        if (this._pellets[pellet] instanceof PowerPellet) {
-            this._pellets[pellet].tick();
-        }
-    }
 };
+
 PlayScene.prototype.draw = function(ctx) {
+    this._pacman.draw(ctx);
+
     for (var wall in this._walls) {
         this._walls[wall].draw(ctx);
     }
@@ -59,30 +44,18 @@ PlayScene.prototype.draw = function(ctx) {
         this._ghosts[ghost].draw(ctx);
     }
 
-    this._pacman.draw(ctx);
-
     this._gate.draw(ctx);
     this._drawScore(ctx);
-    this._drawLives(ctx);
-    this._pointsMessage.draw(ctx);
     this._readyMessage.draw(ctx);
 };
+
 PlayScene.prototype._drawScore = function(ctx) {
-    var SCORE_X = 55;
-    var SCORE_Y = 30;
-    ctx.fillStyle = "#dedede";
+    var SCORE_X = 0;
+    var SCORE_Y = 200;
+    ctx.fillStyle = "red";
     ctx.font = "bold 14px 'Lucida Console', Monaco, monospace"
     var text = "SCORE: " + this._score;
     ctx.fillText(text, SCORE_X, SCORE_Y);
-};
-PlayScene.prototype._drawLives = function(ctx) {
-    var x = 55;
-    var width = 18
-    var y = 430;
-
-    for (var i = 0; i < this._pacman.getLivesCount(); ++i) {
-        ctx.drawImage(ImageManager.getImage('pacman_3l'), x + i * width, y);
-    }
 };
 PlayScene.prototype.keyPressed = function(key) {
     this._pacman.keyPressed(key);
@@ -98,33 +71,31 @@ PlayScene.prototype.loadMap = function(map) {
     this._pellets = [];
     this._ghosts = [];
 
-    var numRows = map.length;
-    var numCols = map[0].length;
-
-    this._mapRows = numRows;
-    this._mapCols = numCols;
-
-    for (var row = 0; row < numRows; ++row) {
-        for (var col = 0; col < numCols; ++col) {
+    for (var row = 0; row < map.length; ++row) {
+        for (var col = 0; col < map[row].length; ++col) {
             var tile = map[row][col];
             var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
 
             if (tile == '#') {
-                var wall = new Wall(this._getWallImage(map, row, col), this);
+                var wall = new Wall();
                 wall.setPosition(position);
                 this._walls.push(wall);
             } else if (tile == '.') {
-                var pellet = new Pellet(this);
+                var pellet = new Pellet();
+                position.x += (TILE_SIZE - NORMAL_PELLET_SIZE) / 2 + 1;
+                position.y += (TILE_SIZE - NORMAL_PELLET_SIZE) / 2 + 1;
                 pellet.setPosition(position);
                 this._pellets.push(pellet);
             } else if (tile == 'O') {
-                var powerPellet = new PowerPellet(this);
+                var powerPellet = new PowerPellet();
+                position.x += (TILE_SIZE - POWER_PELLET_SIZE) / 2 + 1;
+                position.y += (TILE_SIZE - POWER_PELLET_SIZE) / 2 + 1;
                 powerPellet.setPosition(position);
                 this._pellets.push(powerPellet);
             } else if (tile == '-') {
                 this._lairPosition = new Position(position.x, position.y + TILE_SIZE);
 
-                var gate = new Gate(this);
+                var gate = new Gate();
                 position.y += (TILE_SIZE - GATE_HEIGHT) / 2 + 1;
                 gate.setPosition(position);
                 this._gate = gate;
@@ -149,72 +120,6 @@ PlayScene.prototype.loadMap = function(map) {
             }
         }
     }
-};
-PlayScene.prototype._getWallImage = function(map, row, col) {
-    var numRows = map.length;
-    var numCols = map[0].length;
-    var lastRow = numRows - 1;
-    var lastCol = numCols - 1;
-
-    if ((col > 0 && col < lastCol) &&
-        (map[row][col - 1] == '#' && map[row][col + 1] == '#') &&
-        ((row == 0 || map[row - 1][col] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
-        return 'wall_h';
-    } else if ((row > 0 && row < lastRow) &&
-        (map[row - 1][col] == '#' && map[row + 1][col] == '#') &&
-        ((col == 0 || map[row][col - 1] != '#') && (col == lastCol || map[row][col + 1] != '#'))) {
-        return 'wall_v';
-    } else if ((col < lastCol && row < lastRow) &&
-        (map[row][col + 1] == '#' && map[row + 1][col] == '#') &&
-        ((col == 0 || map[row][col - 1] != '#') && (row == 0 || map[row - 1][col] != '#'))) {
-        return 'wall_tlc';
-    } else if ((col > 0 && row < lastRow) &&
-        (map[row][col - 1] == '#' && map[row + 1][col] == '#') &&
-        ((col == lastCol || map[row][col + 1] != '#') && (row == 0 || map[row - 1][col] != '#'))) {
-        return 'wall_trc';
-    } else if ((col < lastCol && row > 0) &&
-        (map[row][col + 1] == '#' && map[row - 1][col] == '#') &&
-        ((col == 0 || map[row][col - 1] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
-        return 'wall_blc';
-    } else if ((col > 0 && row > 0) &&
-        (map[row][col - 1] == '#' && map[row - 1][col] == '#') &&
-        ((col == lastCol || map[row][col + 1] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
-        return 'wall_brc';
-    } else if ((row < lastRow) &&
-        (map[row + 1][col] == '#') &&
-        ((row == 0 || map[row - 1][col] != '#') && (col == 0 || map[row][col - 1] != '#') && (col == lastCol || map[row][col + 1] != '#'))) {
-        return 'wall_t';
-    } else if ((row > 0) &&
-        (map[row - 1][col] == '#') &&
-        ((row == lastRow || map[row + 1][col] != '#') && (col == 0 || map[row][col - 1] != '#') && (col == lastCol || map[row][col + 1] != '#'))) {
-        return 'wall_b';
-    } else if ((col < lastCol) &&
-        (map[row][col + 1] == '#') &&
-        ((col == 0 || map[row][col - 1] != '#') && (row == 0 || map[row - 1][col] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
-        return 'wall_l';
-    } else if ((col > 0) &&
-        (map[row][col - 1] == '#') &&
-        ((col == lastCol || map[row][col + 1] != '#') && (row == 0 || map[row - 1][col] != '#') && (row == lastRow || map[row + 1][col] != '#'))) {
-        return 'wall_r';
-    } else if ((col > 0 && col < lastCol && row < lastRow) &&
-        (map[row][col - 1] == '#' && map[row][col + 1] == '#' && map[row + 1][col] == '#') &&
-        (row == 0 || map[row - 1][col] != '#')) {
-        return 'wall_mt';
-    } else if ((col > 0 && col < lastCol && row > 0) &&
-        (map[row][col - 1] == '#' && map[row][col + 1] == '#' && map[row - 1][col] == '#') &&
-        (row == lastRow || map[row + 1][col] != '#')) {
-        return 'wall_mb';
-    } else if ((row > 0 && row < lastRow && col < lastCol) &&
-        (map[row - 1][col] == '#' && map[row + 1][col] == '#' && map[row][col + 1] == '#') &&
-        (col == 0 || map[row][col - 1] != '#')) {
-        return 'wall_ml';
-    } else if ((row > 0 && row < lastRow && col > 0) &&
-        (map[row - 1][col] == '#' && map[row + 1][col] == '#' && map[row][col - 1] == '#') &&
-        (col == lastCol || map[row][col + 1] != '#')) {
-        return 'wall_mr';
-    }
-
-    return null;
 };
 PlayScene.prototype.getWalls = function() {
     return this._walls;
@@ -246,29 +151,11 @@ PlayScene.prototype.getGhosts = function() {
 PlayScene.prototype.getCurrentLevel = function() {
     return this._currentLevel;
 };
-PlayScene.prototype.setGhostScoreValue = function(value) {
-    this._ghostScoreValue = value;
-    this._previousEatenGhostScoreValue = 0;
-};
-PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
-    var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
-    this.increaseScore(amount);
-    this._previousEatenGhostScoreValue = amount;
-
-    this._pointsMessage.setEatenGhost(ghost);
-    this._pointsMessage.setValue(amount);
-    this._pointsMessage.setPosition(this._pacman.getPosition());
-    this._pointsMessage.show();
-};
-
 PlayScene.prototype.getScore = function() {
     return this._score;
 };
 PlayScene.prototype.increaseScore = function(amount) {
     this._score += amount;
-};
-PlayScene.prototype.getPointsMessage = function() {
-    return this._pointsMessage;
 };
 PlayScene.prototype.placeGhostsToStartPositions = function() {
     for (var ghost in this._ghosts) {
@@ -276,54 +163,22 @@ PlayScene.prototype.placeGhostsToStartPositions = function() {
     }
 };
 PlayScene.prototype.makeGhostsVulnerable = function() {
-    this._previousEatenGhostScoreValue = 0;
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].makeVulnerable();
     }
 };
-PlayScene.prototype.getWidth = function() {
-    return this._mapCols * TILE_SIZE;
-};
-PlayScene.prototype.getHeight = function() {
-    return this._mapRows * TILE_SIZE;
-};
-PlayScene.prototype.getLeft = function() {
-    return 0;
-};
-PlayScene.prototype.getRight = function() {
-    return this.getWidth() - 1;
-};
-PlayScene.prototype.getTop = function() {
-    return 0;
-};
-PlayScene.prototype.getBottom = function() {
-    return this.getHeight() - 1;
-};
 PlayScene.prototype._getMapForCurrentLevel = function() {
     if (this._currentLevel == 1) {
-        return ['###########################',
-            '#............#............#',
-            '#.####.#####.#.#####.####.#',
-            '#O#  #.#   #.#.#   #.#  #O#',
-            '#.####.#####.#.#####.####.#',
-            '#.........................#',
-            '#.######.#.#####.#.######.#',
-            '#........#...#...#........#',
-            '########.### # ###.########',
-            '       #.#   1   #.#       ',
-            '########.# ##-## #.########',
-            '        .  #234#  .        ',
-            '########.# ##### #.########',
-            '       #.#   C   #.#       ',
-            '########.# ##### #.########',
-            '#............#............#',
-            '#.###.######.#.######.###.#',
-            '#O..#.................#..O#',
-            '###.#.#.###########.#.#.###',
-            '#.....#......#......#.....#',
-            '#.##########.#.##########.#',
-            '#.........................#',
-            '###########################'
+        return ['#############################',
+            '#O                         O#',
+            '# #### ###### ###### #### # #',
+            '# #  # #     1     # #  # # #',
+            '# #  # # # ##-## # # #  # # #',
+            '# #### # # #234# # # #### # #',
+            '#       O# ##### #          #',
+            '# ######## ##### ########## #',
+            '#C  ................       O#',
+            '#############################'
         ];
     }
     return [];
@@ -352,21 +207,34 @@ PlayScene.prototype.pxToCoord = function(px) {
 };
 PlayScene.prototype._getEmptyGrid = function() {
     var result = [];
-    for (var r = 0; r < this._mapRows; ++r) {
+    var numRows = this._getNumRows();
+    var numCols = this._getNumCols();
+    for (var r = 0; r < numRows; ++r) {
         var row = [];
-        for (var c = 0; c < this._mapCols; ++c) {
+        for (var c = 0; c < numCols; ++c) {
             row.push(0);
         }
         result.push(row);
     }
     return result;
 };
-PlayScene.prototype.getWallAtTile = function(col, row) {
-    var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
-    for (var wall in this._walls) {
-        if (this._walls[wall].getPosition().equals(position)) {
-            return this._walls[wall];
+PlayScene.prototype._getNumRows = function() {
+    var result = -1;
+    for (var i = 0; i < this._walls.length; ++i) {
+        var row = this.pxToCoord(this._walls[i].getY());
+        if (row > result) {
+            result = row;
         }
     }
-    return null;
+    return result + 1;
+};
+PlayScene.prototype._getNumCols = function() {
+    var result = -1;
+    for (var i = 0; i < this._walls.length; ++i) {
+        var col = this.pxToCoord(this._walls[i].getX());
+        if (col > result) {
+            result = col;
+        }
+    }
+    return result + 1;
 };

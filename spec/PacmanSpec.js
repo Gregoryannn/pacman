@@ -493,7 +493,6 @@ describe("When Pacman touches a ghost", function() {
         '###########'
     ]
     var game, playScene, pacman, ghost;
-
     beforeEach(function() {
         game = new Game();
         playScene = new PlayScene(game);
@@ -625,8 +624,10 @@ describe("When vulnerable ghost collides with Pacman", function() {
                 '#                           #',
                 '#############################'
             ];
+
             scene.loadMap(map);
             scene.getReadyMessage().hide();
+
             var pacman = scene.getPacman();
             pacman.requestNewDirection(DIRECTION_RIGHT);
             var ghost = scene.getGhosts()[0];
@@ -634,10 +635,13 @@ describe("When vulnerable ghost collides with Pacman", function() {
             ghost.setDirection(DIRECTION_DOWN);
             game.tick();
             game.tick();
+
             expect(ghost.getState()).toEqual(GHOST_STATE_RUN_HOME);
-            for (var i = 0; i <= 70; i++) {
+
+            for (var i = 0; i <= 55; i++) {
                 game.tick();
             }
+
             expect(ghost.getState()).toEqual(GHOST_STATE_NORMAL);
         });
     });
