@@ -259,7 +259,6 @@ describe("Pacman", function() {
         expect(pacman.getPosition()).toEqual(new Position(INIT_X, INIT_Y + SPEED));
     });
 });
-
 describe("Pacman shouldn't move through the walls", function() {
     var map = ['###',
         '#C#',
@@ -345,7 +344,6 @@ describe("When Pacman is moving and is given a command to change direction", fun
             expect(pacman.getCurrentSpeed()).toEqual(SPEED);
             expect(pacman.getDirection()).toEqual(DIRECTION_LEFT);
             expect(pacman.getPosition()).toEqual(new Position(INIT_POS.x - SPEED, INIT_POS.y));
-
             game.keyPressed(KEY_DOWN);
             game.tick();
             expect(pacman.getCurrentSpeed()).toEqual(SPEED);
@@ -382,7 +380,6 @@ describe("When Pacman collides with a pellet", function() {
         expect(playScene.getPellets().length).toEqual(1);
     });
 });
-
 describe("When Pacman collides with a power pellet", function() {
     var map = ['###########',
         '#CO12     #',
@@ -414,7 +411,6 @@ describe("When Pacman collides with a power pellet", function() {
         expect(ghostRunHome.getState()).toEqual(GHOST_STATE_RUN_HOME);
     });
 });
-
 describe("Ghost", function() {
     describe("#getRandomDirectionNotBlockedByWall", function() {
         var game, playScene;
@@ -489,12 +485,11 @@ describe("Ghost", function() {
         }
     });
 });
-
 describe("When Pacman touches a ghost", function() {
     var map = ['###########',
         '#C  1     #',
         '# ##### #-#',
-        '#       # #',
+        '# 23    # #',
         '###########'
     ]
     var game, playScene, pacman, ghost;
@@ -509,7 +504,6 @@ describe("When Pacman touches a ghost", function() {
         pacman.requestNewDirection(DIRECTION_RIGHT);
         // remove from start position
         pacman.setPosition(new Position(TILE_SIZE * 2, TILE_SIZE));
-
         ghost = playScene.getGhosts()[0];
         ghost.setCurrentSpeed(0);
         // remove from start position
@@ -534,6 +528,16 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
         });
+
+        it("Ghosts should be in Normal state", function() {
+            var ghostVulnerable = playScene.getGhosts()[1];
+            ghostVulnerable.makeVulnerable();
+            var ghostRunHome = playScene.getGhosts()[2];
+            ghostRunHome.runHome();
+            game.tick();
+            expect(ghostVulnerable.getState()).toEqual(GHOST_STATE_NORMAL);
+            expect(ghostRunHome.getState()).toEqual(GHOST_STATE_NORMAL);
+        });
     });
 
     describe("and ghost is vulnerable", function() {
@@ -548,7 +552,6 @@ describe("When Pacman touches a ghost", function() {
         });
     });
 });
-
 describe("When ghost is in Run Home state", function() {
     it("it should move directly to the lair (a cell beneath the gate) and once there return to Normal state", function() {
         var game = new Game();
@@ -605,7 +608,6 @@ describe("When ghost is in Run Home state", function() {
         expect(ghost.getDirection()).toEqual(DIRECTION_UP);
     });
 });
-
 describe("When vulnerable ghost collides with Pacman", function() {
     describe("and Pacman and a ghost move with normal speeds", function() {
         it("ghost should be at home in finite number of moves", function() {
@@ -625,23 +627,17 @@ describe("When vulnerable ghost collides with Pacman", function() {
             ];
             scene.loadMap(map);
             scene.getReadyMessage().hide();
-
             var pacman = scene.getPacman();
             pacman.requestNewDirection(DIRECTION_RIGHT);
-
             var ghost = scene.getGhosts()[0];
             ghost.makeVulnerable();
             ghost.setDirection(DIRECTION_DOWN);
-
             game.tick();
             game.tick();
-
             expect(ghost.getState()).toEqual(GHOST_STATE_RUN_HOME);
-
             for (var i = 0; i <= 70; i++) {
                 game.tick();
             }
-
             expect(ghost.getState()).toEqual(GHOST_STATE_NORMAL);
         });
     });
