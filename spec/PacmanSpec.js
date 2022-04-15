@@ -62,7 +62,7 @@ describe("PlayScene", function() {
     describe("#loadMap", function() {
         it("sample map", function() {
             var map = ['# .-1234',
-                '#C#OO   ',
+                '#C# OO  ',
                 '##.     '
             ];
             playScene.loadMap(map);
@@ -81,6 +81,7 @@ describe("PlayScene", function() {
             expect(pellets[1] instanceof PowerPellet).toBeTruthy();
 
             expect(playScene.getGate() instanceof Gate).toBeTruthy();
+            expect(playScene.getLairPosition()).toEqual({ x: 3 * TILE_SIZE, y: TILE_SIZE });
 
             var ghosts = playScene.getGhosts();
             expect(ghosts.length).toEqual(4);
@@ -401,7 +402,6 @@ describe("When Pacman collides with a power pellet", function() {
         expect(ghost.getState()).toEqual(GHOST_STATE_VULNERABLE);
     });
 });
-
 describe("Ghost", function() {
     describe("#getRandomDirectionNotBlockedByWall", function() {
         var game, playScene;
@@ -476,60 +476,54 @@ describe("Ghost", function() {
         }
     });
 });
-
 describe("When Pacman touches a ghost", function() {
-    ost.setPosition({ x: TILE_SIZE * 2, y: 0 });
-});
-var map = ['C  1'];
-var game, playScene, pacman, ghost;
-
-beforeEach(function() {
-    game = new Game();
-    playScene = new PlayScene(game);
-    game.setScene(playScene);
-    playScene.loadMap(map);
-    playScene.getReadyMessage().hide();
-
-    pacman = playScene.getPacman();
-    pacman.requestNewDirection(DIRECTION_RIGHT);
-    // remove from start position
-    pacman.setPosition({ x: TILE_SIZE, y: 0 });
-
-    ghost = playScene.getGhosts()[0];
-    ghost.setCurrentSpeed(0);
-    // remove from start position
-    ghost.setPosition({ x: TILE_SIZE * 2, y: 0 });
-});
-
-describe("and ghost is not vulnerable", function() {
-    it("Ready message should be visible", function() {
-        expect(playScene.getReadyMessage().isVisible()).toBeFalsy();
-        game.tick();
-        expect(playScene.getReadyMessage().isVisible()).toBeTruthy();
+    var map = ['C  1'];
+    var game, playScene, pacman, ghost;
+    beforeEach(function() {
+        game = new Game();
+        playScene = new PlayScene(game);
+        game.setScene(playScene);
+        playScene.loadMap(map);
+        playScene.getReadyMessage().hide();
+        pacman = playScene.getPacman();
+        pacman.requestNewDirection(DIRECTION_RIGHT);
+        // remove from start position
+        pacman.setPosition({ x: TILE_SIZE, y: 0 });
+        ghost = playScene.getGhosts()[0];
+        ghost.setCurrentSpeed(0);
+        // remove from start position
+        ghost.setPosition({ x: TILE_SIZE * 2, y: 0 });
     });
 
-    it("Pacman should be on the start position", function() {
-        expect(pacman.getPosition()).not.toEqual(pacman.getStartPosition());
-        game.tick();
-        expect(pacman.getPosition()).toEqual(pacman.getStartPosition());
+    describe("and ghost is not vulnerable", function() {
+        it("Ready message should be visible", function() {
+            expect(playScene.getReadyMessage().isVisible()).toBeFalsy();
+            game.tick();
+            expect(playScene.getReadyMessage().isVisible()).toBeTruthy();
+        });
+
+        it("Pacman should be on the start position", function() {
+            expect(pacman.getPosition()).not.toEqual(pacman.getStartPosition());
+            game.tick();
+            expect(pacman.getPosition()).toEqual(pacman.getStartPosition());
+        });
+
+        it("Ghosts should be on their start positions", function() {
+            expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
+            game.tick();
+            expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
+        });
     });
 
-    it("Ghosts should be on their start positions", function() {
-        expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
-        game.tick();
-        expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
+    describe("and ghost is vulnerable", function() {
+        beforeEach(function() {
+            ghost.makeVulnerable();
+        });
+
+        it('ghost should run home', function() {
+            expect(ghost.getState()).toEqual(GHOST_STATE_VULNERABLE);
+            game.tick();
+            expect(ghost.getState()).toEqual(GHOST_STATE_RUN_HOME);
+        });
     });
-});
-
-describe("and ghost is vulnerable", function() {
-beforeEach(function() {
-    ghost.makeVulnerable();
-});
-
-it('ghost should run home', function() {
-    expect(ghost.getState()).toEqual(GHOST_STATE_VULNERABLE);
-    game.tick();
-    expect(ghost.getState()).toEqual(GHOST_STATE_RUN_HOME);
-});
-});
 });
