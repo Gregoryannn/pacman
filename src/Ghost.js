@@ -2,94 +2,30 @@ var GHOST_BLINKY = 'blinky';
 var GHOST_PINKY = 'pinky';
 var GHOST_INKY = 'inky';
 var GHOST_CLYDE = 'clyde';
+
 var GHOST_STATE_NORMAL = 'normal';
 var GHOST_STATE_VULNERABLE = 'vulnerable';
 var GHOST_STATE_RUN_HOME = 'run_home';
-var GHOST_SPEED_FAST = 8;
-var GHOST_SPEED_NORMAL = 4;
-var GHOST_SPEED_SLOW = 2;
 
 function Ghost(name, scene) {
     this._name = name;
     this._scene = scene;
     this._sprite = new Sprite(scene);
     this._sprite.setRect(new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE }));
-    this.setCurrentSpeed(GHOST_SPEED_NORMAL);
+    this._sprite.setCurrentSpeed(2);
     this._state = GHOST_STATE_NORMAL;
-    this._visible = true;
-
-    this._bodyFrames = [1, 2];
-    this._bodyFrame = 0;
-
-    this._vulnerabilityDuration = 150;
-    this._flashingDuration = 50;
-    this._blinkDuration = 7;
-    this._blinkTimer = 0;
-    this._vulnerableTimeLeft = 0;
-    this._blink = false;
 }
+
 Ghost.prototype.getName = function() {
     return this._name;
 };
-Ghost.prototype.setVisible = function(value) {
-    this._visible = value;
-};
-Ghost.prototype.isVisible = function() {
-    return this._visible;
-};
 Ghost.prototype.tick = function() {
-    if (this._scene.getReadyMessage().isVisible() ||
-        this._scene.getPointsMessage().isVisible()) {
+    if (this._scene.getReadyMessage().isVisible()) {
         return;
     }
-
-    this._advanceBodyFrame();
-
-    if (this._state == GHOST_STATE_VULNERABLE) {
-        this._advanceVulnerableStateTimers();
-
-        if (this._vulnerableTimeLeft == 0) {
-            this.makeNormal();
-        }
-    }
-
-    if (this._state == GHOST_STATE_RUN_HOME) {
-        if (this.getPosition().equals(this._scene.getLairPosition())) {
-            this.makeNormal();
-            this._sprite.setDirection(DIRECTION_UP);
-            return;
-        }
-        if (this.getPosition().equals(this._currentWaypoint)) {
-            this._currentWaypoint = this._wayPoints.shift();
-            this._setDirectionToCurrentWaypoint();
-        }
-        this._sprite.move(this.getDirection());
-    } else {
-        this._tryTurnCorner();
-        this._sprite.move(this.getDirection());
-        this._handleCollisionsWithWalls();
-    }
-};
-Ghost.prototype._advanceBodyFrame = function() {
-    this._bodyFrame++;
-    if (this._bodyFrame >= this._bodyFrames.length) {
-        this._bodyFrame = 0;
-    }
-};
-Ghost.prototype._setDirectionToCurrentWaypoint = function() {
-    if (this._currentWaypoint.x == this.getX()) {
-        if (this._currentWaypoint.y > this.getY()) {
-            this._sprite.setDirection(DIRECTION_DOWN);
-        } else {
-            this._sprite.setDirection(DIRECTION_UP);
-        }
-    } else {
-        if (this._currentWaypoint.x > this.getX()) {
-            this._sprite.setDirection(DIRECTION_RIGHT);
-        } else {
-            this._sprite.setDirection(DIRECTION_LEFT);
-        }
-    }
+    this._tryTurnCorner();
+    this._sprite.move(this.getDirection());
+    this._handleCollisionsWithWalls();
 };
 Ghost.prototype._tryTurnCorner = function() {
     if (getRandomInt(0, 1)) {
@@ -141,98 +77,45 @@ Ghost.prototype.setRandomDirectionNotBlockedByWall = function() {
     var directions = this.getDirectionsNotBlockedByWall();
     this._sprite.setDirection(getRandomElementFromArray(directions));
 };
+
 Ghost.prototype.getState = function() {
     return this._state;
 };
-Ghost.prototype.makeNormal = function() {
-    this._state = GHOST_STATE_NORMAL;
-    this.setCurrentSpeed(GHOST_SPEED_NORMAL);
-    this._blink = false;
-};
-Ghost.prototype.setVulnerabilityDuration = function(duration) {
-    this._vulnerabilityDuration = duration;
-};
-Ghost.prototype.setFlashingDuration = function(duration) {
-    this._flashingDuration = duration;
-};
-Ghost.prototype.setBlinkDuration = function(duration) {
-    this._blinkDuration = duration;
-};
-Ghost.prototype.getVulnerableTimeLeft = function() {
-    return this._vulnerableTimeLeft;
-};
-Ghost.prototype.isBlink = function() {
-    return this._blink;
-};
-Ghost.prototype._advanceVulnerableStateTimers = function() {
-    this._vulnerableTimeLeft--;
 
-    if (this._flashingDuration == this._vulnerableTimeLeft) {
-        this._blink = true;
-        this._blinkTimer = 0;
-    }
-    if (this._vulnerableTimeLeft < this._flashingDuration) {
-        this._blinkTimer++;
-        if (this._blinkTimer == this._blinkDuration) {
-            this._blinkTimer = 0;
-            this._blink = !this._blink;
-        }
-    }
-};
 Ghost.prototype.makeVulnerable = function() {
-    if (this._state == GHOST_STATE_NORMAL) {
-        this._state = GHOST_STATE_VULNERABLE;
-        this.setCurrentSpeed(GHOST_SPEED_SLOW);
-        this._vulnerableTimeLeft = this._vulnerabilityDuration;
-    } else if (this._state == GHOST_STATE_VULNERABLE) {
-        this._vulnerableTimeLeft = this._vulnerabilityDuration;
-        this._blink = false;
-    }
+    this._state = GHOST_STATE_VULNERABLE;
 };
 
 Ghost.prototype.runHome = function() {
     this._state = GHOST_STATE_RUN_HOME;
-    this.setCurrentSpeed(GHOST_SPEED_FAST);
-    this._wayPoints = this._scene.getWaypointsToLairForGhost(this);
-    this._currentWaypoint = this._wayPoints.shift();
-    this.setPosition(this._currentWaypoint);
 };
+
 Ghost.prototype.draw = function(ctx) {
-    if (!this._visible) {
-        return;
+    if (this._state == GHOST_STATE_RUN_HOME) {
+        ctx.fillStyle = "#e0fd7c";
+        ctx.fillRect(this.getX() + 2, this.getY() + 2, 3, 3);
+        ctx.fillRect(this.getX() + 6, this.getY() + 2, 3, 3);
+    } else if (this._name == GHOST_CLYDE) {
+        ctx.fillStyle = "#ffb847";
+        else {
+            if (this._state == GHOST_STATE_VULNERABLE) {
+                ctx.fillStyle = "green";
+            } else if (this._name == GHOST_BLINKY) {
+                ctx.fillStyle = "#ff0000";
+            } else if (this._name == GHOST_PINKY) {
+                ctx.fillStyle = "#ffb8de";
+            } else if (this._name == GHOST_INKY) {
+                ctx.fillStyle = "#00ffde";
+            }
+        }
+        ctx.fillRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());
     }
+};
 
-    var x = this._scene.getX() + this.getX();
-    var y = this._scene.getY() + this.getY();
 
-    if (this._state != GHOST_STATE_RUN_HOME) {
-        ctx.drawImage(ImageManager.getImage(this.getCurrentBodyFrame()), x, y);
-    }
-    if (this._state != GHOST_STATE_VULNERABLE) {
-        ctx.drawImage(ImageManager.getImage(this.getCurrentEyesFrame()), x, y);
-    }
-};
-Ghost.prototype.getCurrentBodyFrame = function() {
-    var index = this._bodyFrames[this._bodyFrame];
-    var prefix = this._name;
-    if (this._state == GHOST_STATE_VULNERABLE) {
-        prefix = 'vulnerable';
-    }
-    var result = prefix + '_' + index;
-    if (this._blink) {
-        result += 'b';
-    }
-    return result;
-};
-Ghost.prototype.getCurrentEyesFrame = function() {
-    return 'eyes_' + this.getDirection();
-};
 /*--------------------------- Sprite delegation --------------------------------*/
 Ghost.prototype.getRect = function() {
     return this._sprite.getRect();
-};
-Ghost.prototype.setDirection = function(direction) {
-    return this._sprite.setDirection(direction);
 };
 Ghost.prototype.getDirection = function() {
     return this._sprite.getDirection();
@@ -280,6 +163,5 @@ Ghost.prototype.getStartPosition = function() {
     return this._sprite.getStartPosition();
 };
 Ghost.prototype.placeToStartPosition = function() {
-    this.makeNormal();
     this._sprite.placeToStartPosition();
 };

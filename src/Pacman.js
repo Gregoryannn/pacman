@@ -1,30 +1,8 @@
-function Pacman(scene, game) {
+function Pacman(scene) {
     this._scene = scene;
-    this._game = game;
     this._sprite = new Sprite(scene);
     this._sprite.setRect(new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE }));
-    this._visible = true;
-
-    this._frames = [1, 2, 3, 2];
-    this._frame = 0;
-
-    this._livesCount = 2;
 }
-Pacman.prototype.setLivesCount = function(lives) {
-    this._livesCount = lives;
-};
-Pacman.prototype.getLivesCount = function() {
-    return this._livesCount;
-};
-
-Pacman.prototype.setVisible = function(value) {
-    this._visible = value;
-};
-
-Pacman.prototype.isVisible = function() {
-    return this._visible;
-};
-
 Pacman.prototype.requestNewDirection = function(direction) {
     if (this._sprite.willCollideWithWallIfMovedInDirection(direction)) {
         return;
@@ -33,21 +11,11 @@ Pacman.prototype.requestNewDirection = function(direction) {
     this._sprite.setCurrentSpeed(this._sprite.getSpeed());
 };
 Pacman.prototype.tick = function() {
-    if (this._scene.getReadyMessage().isVisible() ||
-        this._scene.getPointsMessage().isVisible()) {
-        return;
-    }
-
-    this._advanceFrame();
-    this._sprite.move(this._sprite.getDirection());
-    this._handleCollisionsWithWalls();
-    this._handleCollisionsWithPellets();
-    this._handleCollisionsWithGhosts();
-};
-Pacman.prototype._advanceFrame = function() {
-    this._frame++;
-    if (this._frame >= this._frames.length) {
-        this._frame = 0;
+    if (!this._scene.getReadyMessage().isVisible()) {
+        this._sprite.move(this._sprite.getDirection());
+        this._handleCollisionsWithWalls();
+        this._handleCollisionsWithPellets();
+        this._handleCollisionsWithGhosts();
     }
 };
 Pacman.prototype.keyPressed = function(key) {
@@ -81,43 +49,26 @@ Pacman.prototype._handleCollisionsWithPellets = function() {
         }
     }
 };
+
 Pacman.prototype._handleCollisionsWithGhosts = function() {
     var ghosts = this._scene.getGhosts();
     for (var i in ghosts) {
         var ghost = ghosts[i];
         if (this._sprite.collidedWith(ghost)) {
             if (ghost.getState() == GHOST_STATE_NORMAL) {
-                if (this._livesCount == 0) {
-                    this._game.setScene(new StartupScene(this._game));
-                    return;
-                }
-                this._livesCount--;
                 this._scene.getReadyMessage().show();
                 this.placeToStartPosition();
                 this._scene.placeGhostsToStartPositions();
                 return;
             } else if (ghost.getState() == GHOST_STATE_VULNERABLE) {
                 ghost.runHome();
-                this._scene.addScoreForEatenGhost(ghost);
             }
         }
     }
 };
-
 Pacman.prototype.draw = function(ctx) {
-    if (!this._visible) {
-        return;
-    }
-
-    var x = this._scene.getX() + this.getX();
-    var y = this._scene.getY() + this.getY();
-
-    ctx.drawImage(ImageManager.getImage(this.getCurrentFrame()), x, y);
-};
-Pacman.prototype.getCurrentFrame = function() {
-    var index = this._frames[this._frame];
-    var direction = index > 1 ? this.getDirection() : '';
-    return 'pacman_' + index + direction;
+    ctx.fillStyle = "yellow";
+    ctx.fillRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());
 };
 /*--------------------------- Sprite delegation --------------------------------*/
 Pacman.prototype.getRect = function() {
