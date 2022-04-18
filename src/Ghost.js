@@ -6,25 +6,37 @@ var GHOST_STATE_NORMAL = 'normal';
 var GHOST_STATE_VULNERABLE = 'vulnerable';
 var GHOST_STATE_RUN_HOME = 'run_home';
 
+
+var GHOST_SPEED_FAST = 8;
+var GHOST_SPEED_NORMAL = 4;
+var GHOST_SPEED_SLOW = 2;
+
+
 function Ghost(name, scene) {
     this._name = name;
     this._scene = scene;
     this._sprite = new Sprite(scene);
     this._sprite.setRect(new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE }));
-    this._sprite.setCurrentSpeed(2);
+    this.setCurrentSpeed(GHOST_SPEED_NORMAL);
     this._state = GHOST_STATE_NORMAL;
+
+    this._bodyFrames = [1, 2];
+    this._bodyFrame = 0;
+
 }
 Ghost.prototype.getName = function() {
     return this._name;
 };
+
 Ghost.prototype.tick = function() {
     if (this._scene.getReadyMessage().isVisible()) {
         return;
     }
 
+    this._advanceBodyFrame();
     if (this._state == GHOST_STATE_RUN_HOME) {
         if (this.getPosition().equals(this._scene.getLairPosition())) {
-            this._state = GHOST_STATE_NORMAL;
+            this.makeNormal();
             this._sprite.setDirection(DIRECTION_UP);
             return;
         }
@@ -37,6 +49,13 @@ Ghost.prototype.tick = function() {
         this._tryTurnCorner();
         this._sprite.move(this.getDirection());
         this._handleCollisionsWithWalls();
+    }
+};
+
+Ghost.prototype._advanceBodyFrame = function() {
+    this._bodyFrame++;
+    if (this._bodyFrame >= this._bodyFrames.length) {
+        this._bodyFrame = 0;
     }
 };
 
@@ -85,6 +104,7 @@ Ghost.prototype._getPossibleTurns = function() {
     }
     return result;
 };
+
 Ghost.prototype._handleCollisionsWithWalls = function() {
     var touchedWall = this._sprite.getTouchedWall();
     if (touchedWall != null) {
@@ -92,6 +112,7 @@ Ghost.prototype._handleCollisionsWithWalls = function() {
         this.setRandomDirectionNotBlockedByWall();
     }
 };
+
 Ghost.prototype.getDirectionsNotBlockedByWall = function() {
     var directions = [DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN];
     var notBlockedDirections = [];
@@ -102,10 +123,12 @@ Ghost.prototype.getDirectionsNotBlockedByWall = function() {
     }
     return notBlockedDirections;
 };
+
 Ghost.prototype.setRandomDirectionNotBlockedByWall = function() {
     var directions = this.getDirectionsNotBlockedByWall();
     this._sprite.setDirection(getRandomElementFromArray(directions));
 };
+
 Ghost.prototype.getState = function() {
     return this._state;
 };
@@ -113,36 +136,45 @@ Ghost.prototype.getState = function() {
 Ghost.prototype.makeVulnerable = function() {
     if (this._state == GHOST_STATE_NORMAL) {
         this._state = GHOST_STATE_VULNERABLE;
+        this.setCurrentSpeed(GHOST_SPEED_SLOW);
     }
+};
+
+Ghost.prototype.makeNormal = function() {
+    this._state = GHOST_STATE_NORMAL;
+    this.setCurrentSpeed(GHOST_SPEED_NORMAL);
 };
 
 Ghost.prototype.runHome = function() {
     this._state = GHOST_STATE_RUN_HOME;
+    this.setCurrentSpeed(GHOST_SPEED_FAST);
     this._wayPoints = this._scene.getWaypointsToLairForGhost(this);
     this._currentWaypoint = this._wayPoints.shift();
     this.setPosition(this._currentWaypoint);
 };
 
 Ghost.prototype.draw = function(ctx) {
-    if (this._state == GHOST_STATE_RUN_HOME) {
-        ctx.fillStyle = "#e0fd7c";
-        ctx.fillRect(this.getX() + 2, this.getY() + 2, 3, 3);
-        ctx.fillRect(this.getX() + 6, this.getY() + 2, 3, 3);
-    } else {
-        if (this._state == GHOST_STATE_VULNERABLE) {
-            ctx.fillStyle = "green";
-        } else if (this._name == GHOST_BLINKY) {
-            ctx.fillStyle = "#ff0000";
-        } else if (this._name == GHOST_PINKY) {
-            ctx.fillStyle = "#ffb8de";
-        } else if (this._name == GHOST_INKY) {
-            ctx.fillStyle = "#00ffde";
-        } else if (this._name == GHOST_CLYDE) {
-            ctx.fillStyle = "#ffb847";
-        }
-        ctx.fillRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());
+    if (this._state != GHOST_STATE_RUN_HOME) {
+        ctx.drawImage(ImageManager.getImage(this.getCurrentBodyFrame()), this.getX(), this.getY());
+    }
+    if (this._state != GHOST_STATE_VULNERABLE) {
+        ctx.drawImage(ImageManager.getImage(this.getCurrentEyesFrame()), this.getX(), this.getY());
     }
 };
+
+Ghost.prototype.getCurrentBodyFrame = function() {
+    var index = this._bodyFrames[this._bodyFrame];
+    var prefix = this._name;
+    if (this._state == GHOST_STATE_VULNERABLE) {
+        prefix = 'vulnerable';
+    }
+    return prefix + '_' + index;
+};
+
+Ghost.prototype.getCurrentEyesFrame = function() {
+    return 'eyes_' + this.getDirection();
+};
+
 /*--------------------------- Sprite delegation --------------------------------*/
 Ghost.prototype.getRect = function() {
     return this._sprite.getRect();
@@ -156,9 +188,7 @@ Ghost.prototype.getDirection = function() {
     return this._sprite.getDirection();
 };
 
-Ghost.prototype.setSpeed = function(speed) {
-    this._sprite.setSpeed(speed);
-};
+
 
 Ghost.prototype.setCurrentSpeed = function(speed) {
     this._sprite.setCurrentSpeed(speed);
@@ -203,5 +233,5 @@ Ghost.prototype.getStartPosition = function() {
     return this._sprite.getStartPosition();
 };
 Ghost.prototype.placeToStartPosition = function() {
-    this._sprite.placeToStartPosition();
+    this.makeNormal();
 };

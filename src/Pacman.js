@@ -2,7 +2,11 @@ function Pacman(scene) {
     this._scene = scene;
     this._sprite = new Sprite(scene);
     this._sprite.setRect(new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE }));
+
+    this._frames = [1, 2, 3, 2];
+    this._frame = 0;
 }
+
 Pacman.prototype.requestNewDirection = function(direction) {
     if (this._sprite.willCollideWithWallIfMovedInDirection(direction)) {
         return;
@@ -10,14 +14,25 @@ Pacman.prototype.requestNewDirection = function(direction) {
     this._sprite.setDirection(direction);
     this._sprite.setCurrentSpeed(this._sprite.getSpeed());
 };
+
 Pacman.prototype.tick = function() {
     if (!this._scene.getReadyMessage().isVisible()) {
+        this._advanceFrame();
         this._sprite.move(this._sprite.getDirection());
         this._handleCollisionsWithWalls();
         this._handleCollisionsWithPellets();
         this._handleCollisionsWithGhosts();
     }
 };
+
+Pacman.prototype._advanceFrame = function() {
+    this._frame++;
+    if (this._frame >= this._frames.length) {
+        this._frame = 0;
+    }
+};
+
+
 Pacman.prototype.keyPressed = function(key) {
     if (key == KEY_RIGHT) {
         this.requestNewDirection(DIRECTION_RIGHT);
@@ -29,6 +44,7 @@ Pacman.prototype.keyPressed = function(key) {
         this.requestNewDirection(DIRECTION_DOWN);
     }
 };
+
 Pacman.prototype._handleCollisionsWithWalls = function() {
     var touchedWall = this._sprite.getTouchedWall();
     if (touchedWall != null) {
@@ -36,6 +52,7 @@ Pacman.prototype._handleCollisionsWithWalls = function() {
         this._sprite.setCurrentSpeed(0);
     }
 };
+
 Pacman.prototype._handleCollisionsWithPellets = function() {
     var pellets = this._scene.getPellets();
     for (var pellet in pellets) {
@@ -66,10 +83,20 @@ Pacman.prototype._handleCollisionsWithGhosts = function() {
         }
     }
 };
+
+
 Pacman.prototype.draw = function(ctx) {
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());
+    ctx.drawImage(ImageManager.getImage(this.getCurrentFrame()), this.getX(), this.getY());
 };
+
+Pacman.prototype.getCurrentFrame = function() {
+    var index = this._frames[this._frame];
+    var direction = index > 1 ? this.getDirection() : '';
+    return 'pacman_' + index + direction;
+
+};
+
+
 /*--------------------------- Sprite delegation --------------------------------*/
 Pacman.prototype.getRect = function() {
     return this._sprite.getRect();
