@@ -71,25 +71,24 @@ PlayScene.prototype.loadMap = function(map) {
     this._pellets = [];
     this._ghosts = [];
 
-    for (var row = 0; row < map.length; ++row) {
-        for (var col = 0; col < map[row].length; ++col) {
+    var num_rows = map.length;
+    var num_cols = map[0].length;
+
+    for (var row = 0; row < num_rows; ++row) {
+        for (var col = 0; col < num_cols; ++col) {
             var tile = map[row][col];
             var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
 
             if (tile == '#') {
-                var wall = new Wall();
+                var wall = new Wall(this._getWallImage(map, row, col));
                 wall.setPosition(position);
                 this._walls.push(wall);
             } else if (tile == '.') {
                 var pellet = new Pellet();
-                position.x += (TILE_SIZE - NORMAL_PELLET_SIZE) / 2 + 1;
-                position.y += (TILE_SIZE - NORMAL_PELLET_SIZE) / 2 + 1;
                 pellet.setPosition(position);
                 this._pellets.push(pellet);
             } else if (tile == 'O') {
                 var powerPellet = new PowerPellet();
-                position.x += (TILE_SIZE - POWER_PELLET_SIZE) / 2 + 1;
-                position.y += (TILE_SIZE - POWER_PELLET_SIZE) / 2 + 1;
                 powerPellet.setPosition(position);
                 this._pellets.push(powerPellet);
             } else if (tile == '-') {
@@ -121,6 +120,62 @@ PlayScene.prototype.loadMap = function(map) {
         }
     }
 };
+
+
+
+PlayScene.prototype._getWallImage = function(map, row, col) {
+    var num_rows = map.length;
+    var num_cols = map[0].length;
+    var last_row = num_rows - 1;
+    var last_col = num_cols - 1;
+
+    if ((col > 0 && col < last_col) &&
+        (map[row][col - 1] == '#' && map[row][col + 1] == '#') &&
+        ((row == 0 || map[row - 1][col] != '#') && (row == last_row || map[row + 1][col] != '#'))) {
+        return 'wall_h';
+    } else if ((row > 0 && row < last_row) &&
+        (map[row - 1][col] == '#' && map[row + 1][col] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (col == last_col || map[row][col + 1] != '#'))) {
+        return 'wall_v';
+    } else if ((col < last_col && row < last_row) &&
+        (map[row][col + 1] == '#' && map[row + 1][col] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (row == 0 || map[row - 1][col] != '#'))) {
+        return 'wall_tlc';
+    } else if ((col > 0 && row < last_row) &&
+        (map[row][col - 1] == '#' && map[row + 1][col] == '#') &&
+        ((col == last_col || map[row][col + 1] != '#') && (row == 0 || map[row - 1][col] != '#'))) {
+        return 'wall_trc';
+    } else if ((col < last_col && row > 0) &&
+        (map[row][col + 1] == '#' && map[row - 1][col] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (row == last_row || map[row + 1][col] != '#'))) {
+        return 'wall_blc';
+    } else if ((col > 0 && row > 0) &&
+        (map[row][col - 1] == '#' && map[row - 1][col] == '#') &&
+        ((col == last_col || map[row][col + 1] != '#') && (row == last_row || map[row + 1][col] != '#'))) {
+        return 'wall_brc';
+    } else if ((row < last_row) &&
+        (map[row + 1][col] == '#') &&
+        ((row == 0 || map[row - 1][col] != '#') && (col == 0 || map[row][col - 1] != '#') && (col == last_col || map[row][col + 1] != '#'))) {
+        return 'wall_t';
+    } else if ((row > 0) &&
+        (map[row - 1][col] == '#') &&
+        ((row == last_row || map[row + 1][col] != '#') && (col == 0 || map[row][col - 1] != '#') && (col == last_col || map[row][col + 1] != '#'))) {
+        return 'wall_b';
+    } else if ((col < last_col) &&
+        (map[row][col + 1] == '#') &&
+        ((col == 0 || map[row][col - 1] != '#') && (row == 0 || map[row - 1][col] != '#') && (row == last_row || map[row + 1][col] != '#'))) {
+        return 'wall_l';
+    } else if ((col > 0) &&
+        (map[row][col - 1] == '#') &&
+        ((col == last_col || map[row][col + 1] != '#') && (row == 0 || map[row - 1][col] != '#') && (row == last_row || map[row + 1][col] != '#'))) {
+        return 'wall_r';
+    }
+
+    return null;
+};
+
+
+
 PlayScene.prototype.getWalls = function() {
     return this._walls;
 };
@@ -176,12 +231,13 @@ PlayScene.prototype._getMapForCurrentLevel = function() {
             '# #  # # # ##-## # # #  # # #',
             '# #### # # #234# # # #### # #',
             '#       O# ##### #          #',
-            '# ######## ##### ########## #',
-            '#C  ................       O#',
-            '#############################'
+            '# ########       ########## #',
+            '#C  .......#####....       O#',
+            '############   ##############'
         ];
-    }
-    return [];
+    ];
+}
+return [];
 };
 PlayScene.prototype.getWaypointsToLairForGhost = function(ghost) {
     var result = [];
@@ -237,4 +293,14 @@ PlayScene.prototype._getNumCols = function() {
         }
     }
     return result + 1;
+};
+
+PlayScene.prototype.getWallAtTile = function(col, row) {
+    var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
+    for (var wall in this._walls) {
+        if (this._walls[wall].getPosition().equals(position)) {
+            return this._walls[wall];
+        }
+    }
+    return null;
 };
