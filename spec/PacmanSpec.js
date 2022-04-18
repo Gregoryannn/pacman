@@ -4,6 +4,7 @@ describe("When game is just started", function() {
         expect(game.getScene() instanceof StartupScene).toBeTruthy();
     });
 });
+
 describe("When on Startup scene", function() {
     var game;
 
@@ -25,6 +26,7 @@ describe("When on Startup scene", function() {
         });
     });
 });
+
 describe("Game", function() {
     describe("#draw", function() {
         it("should delegate call to scene", function() {
@@ -37,6 +39,7 @@ describe("Game", function() {
         });
     });
 });
+
 describe("PlayScene", function() {
     var game, scene;
 
@@ -147,8 +150,6 @@ describe("PlayScene", function() {
             expect(scene.getWallAtTile(1, 1)).toBeNull();
         });
 
-
-
     });
 });
 
@@ -212,6 +213,10 @@ describe("When Play scene is just started", function() {
     it("Ghosts should have non-zero speed", function() {
         var ghosts = playScene.getGhosts();
         expect(ghosts[0].getCurrentSpeed()).toBeGreaterThan(0);
+    });
+
+    it("Pacman should have 2 lives", function() {
+        expect(playScene.getPacman().getLivesCount()).toEqual(2);
     });
 });
 
@@ -407,7 +412,6 @@ describe("Pacman animation", function() {
 });
 
 
-
 describe("Pacman shouldn't move through the walls", function() {
     var map = ['###',
         '#C#',
@@ -444,6 +448,7 @@ describe("Pacman shouldn't move through the walls", function() {
         expect(pacman.getPosition()).toEqual(INITIAL_POS);
     }
 });
+
 describe("When Pacman is collided with wall and stopped and then is given a new direction", function() {
     it("Pacman should regain its speed", function() {
         var SPEED = 2;
@@ -470,6 +475,7 @@ describe("When Pacman is collided with wall and stopped and then is given a new 
         expect(pacman.getCurrentSpeed()).toEqual(SPEED);
     });
 });
+
 describe("When Pacman is moving and is given a command to change direction", function() {
     describe("and this direction is blocked by a wall", function() {
         it("Pacman's current direction shouldn't change", function() {
@@ -501,6 +507,7 @@ describe("When Pacman is moving and is given a command to change direction", fun
         });
     });
 });
+
 describe("When Pacman collides with a pellet", function() {
     var map = ['C..'];
     var game, playScene, pacman, PELLET_VALUE;
@@ -529,6 +536,7 @@ describe("When Pacman collides with a pellet", function() {
         expect(playScene.getPellets().length).toEqual(1);
     });
 });
+
 describe("When Pacman collides with a power pellet", function() {
     var map = ['###########',
         '#CO12     #',
@@ -664,7 +672,6 @@ describe("Ghost animation", function() {
 
     it("blinky", function() {
         var blinky = scene.getGhosts()[0];
-
         blinky.setDirection(DIRECTION_RIGHT);
 
         expect(blinky.getCurrentBodyFrame()).toEqual('blinky_1');
@@ -694,8 +701,6 @@ describe("Ghost animation", function() {
         expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1');
     });
 });
-
-
 
 
 describe("When Pacman touches a ghost", function() {
@@ -751,6 +756,19 @@ describe("When Pacman touches a ghost", function() {
             expect(ghostRunHome.getState()).toEqual(GHOST_STATE_NORMAL);
             expect(ghostVulnerable.getCurrentSpeed()).toEqual(GHOST_SPEED_NORMAL);
             expect(ghostRunHome.getCurrentSpeed()).toEqual(GHOST_SPEED_NORMAL);
+        });
+        it("Pacman should lose one life", function() {
+            expect(pacman.getLivesCount()).toEqual(2);
+            game.tick();
+            expect(pacman.getLivesCount()).toEqual(1);
+        });
+
+        describe("and Pacman has no lives left", function() {
+            it("startup screen should appear", function() {
+                pacman.setLivesCount(0);
+                game.tick();
+                expect(game.getScene() instanceof StartupScene).toBeTruthy();
+            });
         });
     });
 
@@ -873,27 +891,93 @@ describe("When vulnerable ghost collides with Pacman", function() {
 
 
 describe("Power pellet", function() {
-            it("should blink", function() {
+    it("should blink", function() {
+        var game = new Game();
+        var scene = new PlayScene(game);
+        game.setScene(scene);
+        var map = ['O'];
+        scene.loadMap(map);
+        scene.getReadyMessage().hide();
+        var powerPellet = scene.getPellets()[0];
+        powerPellet.setBlinkDuration(2);
+
+        expect(powerPellet.isVisible()).toBeTruthy();
+        game.tick();
+        expect(powerPellet.isVisible()).toBeTruthy();
+
+        game.tick();
+        expect(powerPellet.isVisible()).toBeFalsy();
+        game.tick();
+        expect(powerPellet.isVisible()).toBeFalsy();
+
+        game.tick();
+        expect(powerPellet.isVisible()).toBeTruthy();
+        game.tick();
+        expect(powerPellet.isVisible()).toBeTruthy();
+    });
+});
+
+
+describe("When Ghost is Vulnerable", function() {
+            it("it should become Normal after a certain amount of time", function() {
                 var game = new Game();
                 var scene = new PlayScene(game);
                 game.setScene(scene);
-                var map = ['O'];
+                var map = ['#####',
+                    '#1  #',
+                    '# # #',
+                    '#   #',
+                    '#####'
+                ];
                 scene.loadMap(map);
                 scene.getReadyMessage().hide();
-                var powerPellet = scene.getPellets()[0];
-                powerPellet.setBlinkDuration(2);
+                var ghost = scene.getGhosts()[0];
+                ghost.setVulnerabilityDuration(10);
+                ghost.setFlashingDuration(5);
+                ghost.setBlinkDuration(2);
+                ghost.makeVulnerable();
 
-                expect(powerPellet.isVisible()).toBeTruthy();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(10);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1');
                 game.tick();
-                expect(powerPellet.isVisible()).toBeTruthy();
-
+                expect(ghost.getVulnerableTimeLeft()).toEqual(9);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_2');
                 game.tick();
-                expect(powerPellet.isVisible()).toBeFalsy();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(8);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1');
                 game.tick();
-                expect(powerPellet.isVisible()).toBeFalsy();
-
+                expect(ghost.getVulnerableTimeLeft()).toEqual(7);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_2');
                 game.tick();
-                expect(powerPellet.isVisible()).toBeTruthy();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(6);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1');
                 game.tick();
-                expect(powerPellet.isVisible()).toBeTruthy();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(5);
+                expect(ghost.isBlink()).toEqual(true);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_2b');
+                game.tick();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(4);
+                expect(ghost.isBlink()).toEqual(true);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1b');
+                game.tick();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(3);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_2');
+                game.tick();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(2);
+                expect(ghost.isBlink()).toEqual(false);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1');
+                game.tick();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(1);
+                expect(ghost.isBlink()).toEqual(true);
+                expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_2b');
+                game.tick();
+                expect(ghost.getVulnerableTimeLeft()).toEqual(0);
+                expect(ghost.getState()).toEqual(GHOST_STATE_NORMAL);
+                expect(ghost.isBlink()).toEqual(false);
             });
