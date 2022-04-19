@@ -92,6 +92,7 @@ Pacman.prototype._handleCollisionsWithGhosts = function() {
                 return;
             } else if (ghost.getState() == GHOST_STATE_VULNERABLE) {
                 ghost.runHome();
+                this._scene.addScoreForEatenGhost();
             }
         }
     }
