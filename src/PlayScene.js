@@ -233,10 +233,12 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
     PlayScene.prototype.getGate = function() {
         return this._gate;
     };
+
     /**
      * Ghost Lair is a cell just under the cell where the gate is located.
      * When ghosts are in Run Home state they move to lair cell for revival.
      */
+
     PlayScene.prototype.getLairPosition = function() {
         return this._lairPosition;
     };
@@ -262,6 +264,32 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
             this._ghosts[ghost].makeVulnerable();
         }
     };
+
+    PlayScene.prototype.getWidth = function() {
+        return this._mapCols * TILE_SIZE;
+    };
+
+    PlayScene.prototype.getHeight = function() {
+        return this._mapRows * TILE_SIZE;
+    };
+
+    PlayScene.prototype.getLeft = function() {
+        return 0;
+    };
+
+    PlayScene.prototype.getRight = function() {
+        return this.getWidth() - 1;
+    };
+
+
+    PlayScene.prototype.getTop = function() {
+        return 0;
+    };
+
+    PlayScene.prototype.getBottom = function() {
+        return this.getHeight() - 1;
+    };
+
     PlayScene.prototype._getMapForCurrentLevel = function() {
         if (this._currentLevel == 1) {
             return ['###########################',
@@ -275,7 +303,7 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
                 '########.### # ###.########',
                 '       #.#   1   #.#       ',
                 '########.# ##-## #.########',
-                '#       .  #234#  .       #',
+                '        .  #234#  .        ',
                 '########.# ##### #.########',
                 '       #.#   C   #.#       ',
                 '########.# ##### #.########',

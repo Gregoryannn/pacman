@@ -40,6 +40,11 @@ Sprite.prototype.move = function(direction) {
 };
 
 Sprite.prototype._move = function(direction) {
+    this._move(direction);
+    this._checkIfOutOfMapBounds();
+};
+
+Sprite.prototype._move = function(direction) {
     if (direction == DIRECTION_RIGHT) {
         this._rect.move({ x: this._currentSpeed, y: 0 });
     } else if (direction == DIRECTION_LEFT) {
