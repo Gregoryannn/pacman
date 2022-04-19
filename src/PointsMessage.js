@@ -2,6 +2,7 @@ function PointsMessage(scene) {
     this._scene = scene;
     this._visibilityDuration = 15;
 }
+
 PointsMessage.prototype.tick = function() {
     if (this._timeToHide == 0) {
         return;
@@ -11,23 +12,32 @@ PointsMessage.prototype.tick = function() {
         this._ghost.setVisible(true);
         this._scene.getPacman().setVisible(true);
     }
+    if (this._timeToHide == 0) {
+        this._ghost.setVisible(true);
+        this._scene.getPacman().setVisible(true);
+    }
 };
 
 PointsMessage.prototype.setVisibilityDuration = function(duration) {
     this._visibilityDuration = duration;
 };
+
 PointsMessage.prototype.isVisible = function() {
     return this._timeToHide > 0;
 };
+
 PointsMessage.prototype.setValue = function(value) {
     this._value = value;
 };
+
 PointsMessage.prototype.getValue = function() {
     return this._value;
 };
+
 PointsMessage.prototype.setPosition = function(position) {
     this._position = position;
 };
+
 PointsMessage.prototype.getPosition = function() {
     return this._position;
 };

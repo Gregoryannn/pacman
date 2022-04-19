@@ -23,19 +23,17 @@ function PlayScene(game) {
     this._y = 50;
 
     this.setGhostScoreValue(200);
+    this._pointsMessage = new PointsMessage(this);
 }
-
 PlayScene.prototype.getX = function() {
     return this._x;
 };
-
 PlayScene.prototype.getY = function() {
     return this._y;
 };
-
-
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
+    this._pointsMessage.tick();
     this._pacman.tick();
 
     for (var ghost in this._ghosts) {
@@ -48,9 +46,7 @@ PlayScene.prototype.tick = function() {
         }
     }
 };
-
 PlayScene.prototype.draw = function(ctx) {
-
     for (var wall in this._walls) {
         this._walls[wall].draw(ctx);
     }
@@ -64,12 +60,13 @@ PlayScene.prototype.draw = function(ctx) {
     }
 
     this._pacman.draw(ctx);
+
     this._gate.draw(ctx);
     this._drawScore(ctx);
     this._drawLives(ctx);
+    this._pointsMessage.draw(ctx);
     this._readyMessage.draw(ctx);
 };
-
 PlayScene.prototype._drawScore = function(ctx) {
     var SCORE_X = 55;
     var SCORE_Y = 30;
@@ -78,7 +75,6 @@ PlayScene.prototype._drawScore = function(ctx) {
     var text = "SCORE: " + this._score;
     ctx.fillText(text, SCORE_X, SCORE_Y);
 };
-
 PlayScene.prototype._drawLives = function(ctx) {
     var x = 55;
     var width = 18
@@ -110,7 +106,6 @@ PlayScene.prototype.loadMap = function(map) {
 
     for (var row = 0; row < numRows; ++row) {
         for (var col = 0; col < numCols; ++col) {
-
             var tile = map[row][col];
             var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
 
@@ -128,7 +123,8 @@ PlayScene.prototype.loadMap = function(map) {
                 this._pellets.push(powerPellet);
             } else if (tile == '-') {
                 this._lairPosition = new Position(position.x, position.y + TILE_SIZE);
-                var gate = new Gate();
+
+                var gate = new Gate(this);
                 position.y += (TILE_SIZE - GATE_HEIGHT) / 2 + 1;
                 gate.setPosition(position);
                 this._gate = gate;
@@ -154,7 +150,6 @@ PlayScene.prototype.loadMap = function(map) {
         }
     }
 };
-
 PlayScene.prototype._getWallImage = function(map, row, col) {
     var numRows = map.length;
     var numCols = map[0].length;
@@ -218,125 +213,119 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
         (col == lastCol || map[row][col + 1] != '#')) {
         return 'wall_mr';
     }
-    PlayScene.prototype.getWalls = function() {
-        return this._walls;
-    };
-    PlayScene.prototype.getPellets = function() {
-        return this._pellets;
-    };
-    PlayScene.prototype.removePellet = function(pellet) {
-        for (var i = 0; i < this._pellets.length; ++i) {
-            if (this._pellets[i] === pellet) {
-                this._pellets.splice(i, 1);
-                return;
-            }
+
+    return null;
+};
+PlayScene.prototype.getWalls = function() {
+    return this._walls;
+};
+PlayScene.prototype.getPellets = function() {
+    return this._pellets;
+};
+PlayScene.prototype.removePellet = function(pellet) {
+    for (var i = 0; i < this._pellets.length; ++i) {
+        if (this._pellets[i] === pellet) {
+            this._pellets.splice(i, 1);
+            return;
         }
-    };
-    PlayScene.prototype.getGate = function() {
-        return this._gate;
-    };
+    }
+};
+PlayScene.prototype.getGate = function() {
+    return this._gate;
+};
+/**
+ * Ghost Lair is a cell just under the cell where the gate is located.
+ * When ghosts are in Run Home state they move to lair cell for revival.
+ */
+PlayScene.prototype.getLairPosition = function() {
+    return this._lairPosition;
+};
+PlayScene.prototype.getGhosts = function() {
+    return this._ghosts;
+};
+PlayScene.prototype.getCurrentLevel = function() {
+    return this._currentLevel;
+};
+PlayScene.prototype.setGhostScoreValue = function(value) {
+    this._ghostScoreValue = value;
+    this._previousEatenGhostScoreValue = 0;
+};
+PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
+    var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
+    this.increaseScore(amount);
+    this._previousEatenGhostScoreValue = amount;
 
-    /**
-     * Ghost Lair is a cell just under the cell where the gate is located.
-     * When ghosts are in Run Home state they move to lair cell for revival.
-     */
+    this._pointsMessage.setEatenGhost(ghost);
+    this._pointsMessage.setValue(amount);
+    this._pointsMessage.setPosition(this._pacman.getPosition());
+    this._pointsMessage.show();
+};
 
-    PlayScene.prototype.getLairPosition = function() {
-        return this._lairPosition;
-    };
+PlayScene.prototype.getScore = function() {
+    return this._score;
+};
+PlayScene.prototype.increaseScore = function(amount) {
+    this._score += amount;
+};
+PlayScene.prototype.getPointsMessage = function() {
+    return this._pointsMessage;
+};
+PlayScene.prototype.placeGhostsToStartPositions = function() {
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].placeToStartPosition();
+    }
+};
+PlayScene.prototype.makeGhostsVulnerable = function() {
+    for (var ghost in this._ghosts) {
+        this._ghosts[ghost].makeVulnerable();
+    }
+};
+PlayScene.prototype.getWidth = function() {
+    return this._mapCols * TILE_SIZE;
+};
+PlayScene.prototype.getHeight = function() {
+    return this._mapRows * TILE_SIZE;
+};
+PlayScene.prototype.getLeft = function() {
+    return 0;
+};
+PlayScene.prototype.getRight = function() {
+    return this.getWidth() - 1;
+};
+PlayScene.prototype.getTop = function() {
+    return 0;
+};
+PlayScene.prototype.getBottom = function() {
+    return this.getHeight() - 1;
+};
 
-    PlayScene.prototype.getGhosts = function() {
-        return this._ghosts;
-    };
-
-    PlayScene.prototype.getCurrentLevel = function() {
-        return this._currentLevel;
-    };
-
-    PlayScene.prototype.setGhostScoreValue = function(value) {
-        this._ghostScoreValue = value;
-        this._previousEatenGhostScoreValue = 0;
-    };
-
-    PlayScene.prototype.addScoreForEatenGhost = function() {
-        var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
-        this.increaseScore(amount);
-        this._previousEatenGhostScoreValue = amount;
-    };
-
-    PlayScene.prototype.getScore = function() {
-        return this._score;
-    };
-
-    PlayScene.prototype.increaseScore = function(amount) {
-        this._score += amount;
-    };
-
-    PlayScene.prototype.placeGhostsToStartPositions = function() {
-        for (var ghost in this._ghosts) {
-            this._ghosts[ghost].placeToStartPosition();
-        }
-    };
-
-    PlayScene.prototype.makeGhostsVulnerable = function() {
-        for (var ghost in this._ghosts) {
-            this._ghosts[ghost].makeVulnerable();
-        }
-    };
-
-    PlayScene.prototype.getWidth = function() {
-        return this._mapCols * TILE_SIZE;
-    };
-
-    PlayScene.prototype.getHeight = function() {
-        return this._mapRows * TILE_SIZE;
-    };
-
-    PlayScene.prototype.getLeft = function() {
-        return 0;
-    };
-
-    PlayScene.prototype.getRight = function() {
-        return this.getWidth() - 1;
-    };
-
-    PlayScene.prototype.getTop = function() {
-        return 0;
-    };
-
-    PlayScene.prototype.getBottom = function() {
-        return this.getHeight() - 1;
-    };
-
-    PlayScene.prototype._getMapForCurrentLevel = function() {
-        if (this._currentLevel == 1) {
-            return ['###########################',
-                '#............#............#',
-                '#.####.#####.#.#####.####.#',
-                '#O#  #.#   #.#.#   #.#  #O#',
-                '#.####.#####.#.#####.####.#',
-                '#.........................#',
-                '#.######.#.#####.#.######.#',
-                '#........#...#...#........#',
-                '########.### # ###.########',
-                '       #.#   1   #.#       ',
-                '########.# ##-## #.########',
-                '        .  #234#  .        ',
-                '########.# ##### #.########',
-                '       #.#   C   #.#       ',
-                '########.# ##### #.########',
-                '#............#............#',
-                '#.###.######.#.######.###.#',
-                '#O..#.................#..O#',
-                '###.#.#.###########.#.#.###',
-                '#.....#......#......#.....#',
-                '#.##########.#.##########.#',
-                '#.........................#',
-                '###########################'
-            ];
+PlayScene.prototype._getMapForCurrentLevel = function() {
+    if (this._currentLevel == 1) {
+        return ['###########################',
+            '#............#............#',
+            '#.####.#####.#.#####.####.#',
+            '#O#  #.#   #.#.#   #.#  #O#',
+            '#.####.#####.#.#####.####.#',
+            '#.........................#',
+            '#.######.#.#####.#.######.#',
+            '#........#...#...#........#',
+            '########.### # ###.########',
+            '       #.#   1   #.#       ',
+            '########.# ##-## #.########',
+            '        .  #234#  .        ',
+            '########.# ##### #.########',
+            '       #.#   C   #.#       ',
+            '########.# ##### #.########',
+            '#............#............#',
+            '#.###.######.#.######.###.#',
+            '#O..#.................#..O#',
+            '###.#.#.###########.#.#.###',
+            '#.....#......#......#.....#',
+            '#.##########.#.##########.#',
+            '#.........................#',
+            '###########################'
         ];
     }
-
     return [];
 };
 
