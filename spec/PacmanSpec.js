@@ -742,28 +742,33 @@ describe("When Pacman touches a ghost", function() {
         '# 23    # #',
         '###########'
     ]
-    var game, playScene, pacman, ghost;
+
+    var game, scene, pacman, ghost;
+
     beforeEach(function() {
         game = new Game();
-        playScene = new PlayScene(game);
-        game.setScene(playScene);
-        playScene.loadMap(map);
-        playScene.getReadyMessage().hide();
-        pacman = playScene.getPacman();
+        scene = new PlayScene(game);
+        game.setScene(scene);
+        scene.loadMap(map);
+        scene.getReadyMessage().hide();
+
+        pacman = scene.getPacman();
         pacman.requestNewDirection(DIRECTION_RIGHT);
+
         // remove from start position
         pacman.setPosition(new Position(TILE_SIZE * 2, TILE_SIZE));
-        ghost = playScene.getGhosts()[0];
+        ghost = scene.getGhosts()[0];
         ghost.setCurrentSpeed(0);
+
         // remove from start position
         ghost.setPosition(new Position(TILE_SIZE * 3, TILE_SIZE));
     });
 
     describe("and ghost is not vulnerable", function() {
         it("Ready message should be visible", function() {
-            expect(playScene.getReadyMessage().isVisible()).toBeFalsy();
+            expect(scene.getReadyMessage().isVisible()).toBeFalsy();
             game.tick();
-            expect(playScene.getReadyMessage().isVisible()).toBeTruthy();
+            expect(scene.getReadyMessage().isVisible()).toBeTruthy();
         });
 
         it("Pacman should be on the start position", function() {
@@ -779,9 +784,9 @@ describe("When Pacman touches a ghost", function() {
         });
 
         it("Ghosts should be in Normal state and have normal speed", function() {
-            var ghostVulnerable = playScene.getGhosts()[1];
+            var ghostVulnerable = scene.getGhosts()[1];
             ghostVulnerable.makeVulnerable();
-            var ghostRunHome = playScene.getGhosts()[2];
+            var ghostRunHome = scene.getGhosts()[2];
             ghostRunHome.runHome();
             game.tick();
             expect(ghostVulnerable.getState()).toEqual(GHOST_STATE_NORMAL);
@@ -789,6 +794,7 @@ describe("When Pacman touches a ghost", function() {
             expect(ghostVulnerable.getCurrentSpeed()).toEqual(GHOST_SPEED_NORMAL);
             expect(ghostRunHome.getCurrentSpeed()).toEqual(GHOST_SPEED_NORMAL);
         });
+
         it("Pacman should lose one life", function() {
             expect(pacman.getLivesCount()).toEqual(2);
             game.tick();
@@ -820,8 +826,27 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             expect(ghost.getCurrentSpeed()).toEqual(GHOST_SPEED_FAST);
         });
+
+        it("earned points should appear", function() {
+            var GHOST_SCORE_VALUE = 200;
+            scene.setGhostScoreValue(GHOST_SCORE_VALUE);
+            var pointsMessage = scene.getPointsMessage();
+            pointsMessage.setVisibilityDuration(2);
+            var ghostPosition = ghost.getPosition();
+
+            expect(pointsMessage.isVisible()).toBeFalsy();
+            game.tick();
+            expect(pointsMessage.isVisible()).toBeTruthy();
+            expect(pointsMessage.getValue()).toEqual(GHOST_SCORE_VALUE);
+            expect(pointsMessage.getPosition()).toEqual(ghostPosition);
+            game.tick();
+            expect(pointsMessage.isVisible()).toBeTruthy();
+            game.tick();
+            expect(pointsMessage.isVisible()).toBeFalsy();
+        });
     });
 });
+
 
 describe("When ghost is in Run Home state", function() {
     it("it should move directly to the lair (a cell beneath the gate) and once there return to Normal state", function() {
@@ -1151,3 +1176,42 @@ describe("When Ghost goes off the map", function() {
         });
     });
 });
+
+
+describe("When Pacman eats Ghosts", function() {
+            it("next eaten Ghost should increase the Score twice as much as the previous one", function() {
+                var game = new Game();
+                var scene = new PlayScene(game);
+                game.setScene(scene);
+                scene.getReadyMessage().hide();
+                var map = ['#########',
+                    '#C1234  #',
+                    '# ##-## #',
+                    '# #   # #',
+                    '# ##### #',
+                    '#       #',
+                    '#########'
+                ];
+                scene.loadMap(map);
+                scene.setGhostScoreValue(200);
+
+                var pacman = scene.getPacman();
+                pacman.setSpeed(TILE_SIZE);
+                pacman.requestNewDirection(DIRECTION_RIGHT);
+
+                var ghosts = scene.getGhosts();
+                for (var i in ghosts) {
+                    ghosts[i].makeVulnerable();
+                    ghosts[i].setCurrentSpeed(0);
+                }
+
+                expect(scene.getScore()).toEqual(0);
+                game.tick();
+                expect(scene.getScore()).toEqual(200);
+                game.tick();
+                expect(scene.getScore()).toEqual(200 + 400);
+                game.tick();
+                expect(scene.getScore()).toEqual(200 + 400 + 800);
+                game.tick();
+                expect(scene.getScore()).toEqual(200 + 400 + 800 + 1600);
+            });
