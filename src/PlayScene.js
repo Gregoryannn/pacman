@@ -21,6 +21,8 @@ function PlayScene(game) {
     this._score = 0;
     this._x = 50;
     this._y = 50;
+
+    this.setGhostScoreValue(200);
 }
 
 PlayScene.prototype.getX = function() {
@@ -242,23 +244,40 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
     PlayScene.prototype.getLairPosition = function() {
         return this._lairPosition;
     };
+
     PlayScene.prototype.getGhosts = function() {
         return this._ghosts;
     };
+
     PlayScene.prototype.getCurrentLevel = function() {
         return this._currentLevel;
     };
+
+    PlayScene.prototype.setGhostScoreValue = function(value) {
+        this._ghostScoreValue = value;
+        this._previousEatenGhostScoreValue = 0;
+    };
+
+    PlayScene.prototype.addScoreForEatenGhost = function() {
+        var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
+        this.increaseScore(amount);
+        this._previousEatenGhostScoreValue = amount;
+    };
+
     PlayScene.prototype.getScore = function() {
         return this._score;
     };
+
     PlayScene.prototype.increaseScore = function(amount) {
         this._score += amount;
     };
+
     PlayScene.prototype.placeGhostsToStartPositions = function() {
         for (var ghost in this._ghosts) {
             this._ghosts[ghost].placeToStartPosition();
         }
     };
+
     PlayScene.prototype.makeGhostsVulnerable = function() {
         for (var ghost in this._ghosts) {
             this._ghosts[ghost].makeVulnerable();
@@ -280,7 +299,6 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
     PlayScene.prototype.getRight = function() {
         return this.getWidth() - 1;
     };
-
 
     PlayScene.prototype.getTop = function() {
         return 0;
