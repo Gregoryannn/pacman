@@ -1201,39 +1201,83 @@ describe("When Ghost goes off the map", function() {
 
 
 describe("When Pacman eats Ghosts", function() {
-            it("next eaten Ghost should increase the Score twice as much as the previous one", function() {
-                var game = new Game();
-                var scene = new PlayScene(game);
-                game.setScene(scene);
-                scene.getReadyMessage().hide();
-                var map = ['#########',
-                    '#C1234  #',
-                    '# ##-## #',
-                    '# #   # #',
-                    '# ##### #',
-                    '#       #',
-                    '#########'
-                ];
-                scene.loadMap(map);
-                scene.setGhostScoreValue(200);
+    it("next eaten Ghost should increase the Score twice as much as the previous one", function() {
+        var game = new Game();
+        var scene = new PlayScene(game);
+        game.setScene(scene);
+        scene.getReadyMessage().hide();
+        var map = ['#########',
+            '#C1234  #',
+            '# ##-## #',
+            '# #   # #',
+            '# ##### #',
+            '#       #',
+            '#########'
+        ];
+        scene.loadMap(map);
+        scene.setGhostScoreValue(200);
 
-                var pacman = scene.getPacman();
-                pacman.setSpeed(TILE_SIZE);
-                pacman.requestNewDirection(DIRECTION_RIGHT);
+        var pacman = scene.getPacman();
+        pacman.setSpeed(TILE_SIZE);
+        pacman.requestNewDirection(DIRECTION_RIGHT);
 
-                var ghosts = scene.getGhosts();
-                for (var i in ghosts) {
-                    ghosts[i].makeVulnerable();
-                    ghosts[i].setCurrentSpeed(0);
-                }
+        var ghosts = scene.getGhosts();
+        for (var i in ghosts) {
+            ghosts[i].makeVulnerable();
+            ghosts[i].setCurrentSpeed(0);
+        }
 
-                expect(scene.getScore()).toEqual(0);
-                game.tick();
-                expect(scene.getScore()).toEqual(200);
-                game.tick();
-                expect(scene.getScore()).toEqual(200 + 400);
-                game.tick();
-                expect(scene.getScore()).toEqual(200 + 400 + 800);
-                game.tick();
-                expect(scene.getScore()).toEqual(200 + 400 + 800 + 1600);
-            });
+        expect(scene.getScore()).toEqual(0);
+        game.tick();
+        expect(scene.getScore()).toEqual(200);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400 + 800);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400 + 800 + 1600);
+    });
+
+});
+
+describe("When Pacman eats a Power Pellet", function() {
+    it("multiple eaten ghosts bonus should be reset", function() {
+        var game = new Game();
+        var scene = new PlayScene(game);
+        game.setScene(scene);
+        scene.getReadyMessage().hide();
+        var map = ['#########',
+            '#C12O34 #',
+            '# ##-## #',
+            '# #   # #',
+            '# ##### #',
+            '#       #',
+            '#########'
+        ];
+        scene.loadMap(map);
+        scene.setGhostScoreValue(200);
+        scene.getPointsMessage().setVisibilityDuration(0);
+
+        var pacman = scene.getPacman();
+        pacman.setSpeed(TILE_SIZE);
+        pacman.requestNewDirection(DIRECTION_RIGHT);
+
+        var ghosts = scene.getGhosts();
+        for (var i in ghosts) {
+            ghosts[i].makeVulnerable();
+            ghosts[i].setCurrentSpeed(0);
+        }
+
+        expect(scene.getScore()).toEqual(0);
+        game.tick();
+        expect(scene.getScore()).toEqual(200);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400 + 50);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400 + 50 + 200);
+        game.tick();
+        expect(scene.getScore()).toEqual(200 + 400 + 50 + 200 + 400);
+    });
+});

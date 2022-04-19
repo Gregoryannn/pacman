@@ -216,12 +216,15 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
 
     return null;
 };
+
 PlayScene.prototype.getWalls = function() {
     return this._walls;
 };
+
 PlayScene.prototype.getPellets = function() {
     return this._pellets;
 };
+
 PlayScene.prototype.removePellet = function(pellet) {
     for (var i = 0; i < this._pellets.length; ++i) {
         if (this._pellets[i] === pellet) {
@@ -230,31 +233,37 @@ PlayScene.prototype.removePellet = function(pellet) {
         }
     }
 };
+
 PlayScene.prototype.getGate = function() {
     return this._gate;
 };
+
 /**
  * Ghost Lair is a cell just under the cell where the gate is located.
  * When ghosts are in Run Home state they move to lair cell for revival.
  */
+
 PlayScene.prototype.getLairPosition = function() {
     return this._lairPosition;
 };
+
 PlayScene.prototype.getGhosts = function() {
     return this._ghosts;
 };
+
 PlayScene.prototype.getCurrentLevel = function() {
     return this._currentLevel;
 };
+
 PlayScene.prototype.setGhostScoreValue = function(value) {
     this._ghostScoreValue = value;
     this._previousEatenGhostScoreValue = 0;
 };
+
 PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
     var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
     this.increaseScore(amount);
     this._previousEatenGhostScoreValue = amount;
-
     this._pointsMessage.setEatenGhost(ghost);
     this._pointsMessage.setValue(amount);
     this._pointsMessage.setPosition(this._pacman.getPosition());
@@ -264,18 +273,23 @@ PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
 PlayScene.prototype.getScore = function() {
     return this._score;
 };
+
 PlayScene.prototype.increaseScore = function(amount) {
     this._score += amount;
 };
+
 PlayScene.prototype.getPointsMessage = function() {
     return this._pointsMessage;
 };
+
 PlayScene.prototype.placeGhostsToStartPositions = function() {
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].placeToStartPosition();
     }
 };
+
 PlayScene.prototype.makeGhostsVulnerable = function() {
+    this._previousEatenGhostScoreValue = 0;
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].makeVulnerable();
     }
