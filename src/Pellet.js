@@ -1,22 +1,26 @@
-var NORMAL_PELLET_SIZE = TILE_SIZE / 5;
+var PELLET_SIZE = 2;
+var PELLET_POSITION_CORRECTION = 7;
 var NORMAL_PELLET_VALUE = 100;
 
-function Pellet() {
-    this._rect = new Rect({ x: 0, y: 0, w: NORMAL_PELLET_SIZE, h: NORMAL_PELLET_SIZE });
+function Pellet(scene) {
+    this._scene = scene;
+    this._rect = new Rect({ x: 0, y: 0, w: PELLET_SIZE, h: PELLET_SIZE });
 }
-
 Pellet.prototype.getRect = function() {
     return this._rect;
 };
 
 Pellet.prototype.draw = function(ctx) {
-    ctx.drawImage(ImageManager.getImage('pellet'), this.getX(), this.getY());
+    var x = this._scene.getX() + this.getX() - PELLET_POSITION_CORRECTION;
+    var y = this._scene.getY() + this.getY() - PELLET_POSITION_CORRECTION;
 };
 
 
 /*--------------------------- Rect delegation --------------------------------*/
 
 Pellet.prototype.setPosition = function(position) {
+    position.x += PELLET_POSITION_CORRECTION;
+    position.y += PELLET_POSITION_CORRECTION;
     this._rect.setPosition(position);
 };
 

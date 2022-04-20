@@ -2,15 +2,12 @@ var TILE_SIZE = 16;
 
 function PlayScene(game) {
     this._game = game;
-
     this._readyMessage = new ReadyMessage();
     this._readyMessage.setVisibilityDuration(50);
     this._readyMessage.show();
-
     this._pacman = new Pacman(this, game);
     this._pacman.setSpeed(4);
     this._pacman.requestNewDirection(DIRECTION_RIGHT);
-
     this._currentLevel = 1;
     this.loadMap(this._getMapForCurrentLevel());
 
@@ -21,16 +18,18 @@ function PlayScene(game) {
     this._score = 0;
     this._x = 50;
     this._y = 50;
-
     this.setGhostScoreValue(200);
     this._pointsMessage = new PointsMessage(this);
 }
+
 PlayScene.prototype.getX = function() {
     return this._x;
 };
+
 PlayScene.prototype.getY = function() {
     return this._y;
 };
+
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
     this._pointsMessage.tick();
@@ -46,6 +45,7 @@ PlayScene.prototype.tick = function() {
         }
     }
 };
+
 PlayScene.prototype.draw = function(ctx) {
     for (var wall in this._walls) {
         this._walls[wall].draw(ctx);
@@ -60,13 +60,13 @@ PlayScene.prototype.draw = function(ctx) {
     }
 
     this._pacman.draw(ctx);
-
     this._gate.draw(ctx);
     this._drawScore(ctx);
     this._drawLives(ctx);
     this._pointsMessage.draw(ctx);
     this._readyMessage.draw(ctx);
 };
+
 PlayScene.prototype._drawScore = function(ctx) {
     var SCORE_X = 55;
     var SCORE_Y = 30;
@@ -75,6 +75,7 @@ PlayScene.prototype._drawScore = function(ctx) {
     var text = "SCORE: " + this._score;
     ctx.fillText(text, SCORE_X, SCORE_Y);
 };
+
 PlayScene.prototype._drawLives = function(ctx) {
     var x = 55;
     var width = 18
@@ -84,15 +85,19 @@ PlayScene.prototype._drawLives = function(ctx) {
         ctx.drawImage(ImageManager.getImage('pacman_3l'), x + i * width, y);
     }
 };
+
 PlayScene.prototype.keyPressed = function(key) {
     this._pacman.keyPressed(key);
 };
+
 PlayScene.prototype.getReadyMessage = function() {
     return this._readyMessage;
 };
+
 PlayScene.prototype.getPacman = function() {
     return this._pacman;
 };
+
 PlayScene.prototype.loadMap = function(map) {
     this._walls = [];
     this._pellets = [];
@@ -150,6 +155,7 @@ PlayScene.prototype.loadMap = function(map) {
         }
     }
 };
+
 PlayScene.prototype._getWallImage = function(map, row, col) {
     var numRows = map.length;
     var numCols = map[0].length;
@@ -255,6 +261,13 @@ PlayScene.prototype.getCurrentLevel = function() {
     return this._currentLevel;
 };
 
+
+PlayScene.prototype.nextLevel = function() {
+    this._currentLevel++;
+    this.loadMap(this._getMapForCurrentLevel());
+    this._readyMessage.show();
+};
+
 PlayScene.prototype.setGhostScoreValue = function(value) {
     this._ghostScoreValue = value;
     this._previousEatenGhostScoreValue = 0;
@@ -339,7 +352,34 @@ PlayScene.prototype._getMapForCurrentLevel = function() {
             '#.........................#',
             '###########################'
         ];
+
+    } else if (this._currentLevel == 2) {
+        return ['###########################',
+            '#............#............#',
+            '#.####.#####.#.#####.####.#',
+            '#O#  #.#   #.#.#   #.#  #O#',
+            '#.####.#####.#.#####.####.#',
+            '#.........................#',
+            '#.######.#.#####.#.######.#',
+            '#........#...#...#........#',
+            '########.### # ###.########',
+            '       #.#   1   #.#       ',
+            '########.# ##-## #.########',
+            '        .  #234#  .        ',
+            '########.# ##### #.########',
+            '       #.#   C   #.#       ',
+            '########.# ##### #.########',
+            '#............#............#',
+            '#.###.######.#.######.###.#',
+            '#O..#.................#..O#',
+            '###.#.#.###########.#.#.###',
+            '#.....#......#......#.....#',
+            '#.##########.#.##########.#',
+            '#.........................#',
+            '###########################'
+        ];
     }
+
     return [];
 };
 

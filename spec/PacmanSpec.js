@@ -1252,7 +1252,7 @@ describe("When Pacman eats Ghosts", function() {
             '# ##-## #',
             '# #   # #',
             '# ##### #',
-            '#       #',
+            '#  .    # #',
             '#########'
         ];
         scene.loadMap(map);
@@ -1320,5 +1320,39 @@ describe("When Pacman eats a Power Pellet", function() {
         expect(scene.getScore()).toEqual(200 + 400 + 50 + 200);
         game.tick();
         expect(scene.getScore()).toEqual(200 + 400 + 50 + 200 + 400);
+    });
+});
+
+describe("When all pellets on the level are eaten", function() {
+    var map = ['####',
+        'C.O ',
+        '####'
+    ];
+    var game, scene, pacman;
+
+    beforeEach(function() {
+        game = new Game();
+        scene = new PlayScene(game);
+        game.setScene(scene);
+        scene.getReadyMessage().hide();
+        scene.loadMap(map);
+
+        pacman = scene.getPacman();
+        pacman.setSpeed(TILE_SIZE);
+        pacman.requestNewDirection(DIRECTION_RIGHT);
+    });
+
+    it("next level should be loaded", function() {
+        expect(scene.getCurrentLevel()).toEqual(1);
+        game.tick();
+        game.tick();
+        expect(scene.getCurrentLevel()).toEqual(2);
+    });
+
+    it("Ready message should be shown", function() {
+        expect(scene.getReadyMessage().isVisible()).toBeFalsy();
+        game.tick();
+        game.tick();
+        expect(scene.getReadyMessage().isVisible()).toBeTruthy();
     });
 });
