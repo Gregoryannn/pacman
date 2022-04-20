@@ -94,6 +94,7 @@ Pacman.prototype._handleCollisionsWithGhosts = function() {
                 this._livesCount--;
                 this._scene.getReadyMessage().show();
                 this.placeToStartPosition();
+                this._frame = 0;
                 this._scene.placeGhostsToStartPositions();
                 return;
             } else if (ghost.getState() == GHOST_STATE_VULNERABLE) {

@@ -819,6 +819,11 @@ describe("When Pacman touches a ghost", function() {
             expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
         });
 
+        it("Pacman's mouth should be closed", function() {
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_1');
+        });
+
         it("Ghosts should be in Normal state and have normal speed", function() {
             var ghostVulnerable = scene.getGhosts()[1];
             ghostVulnerable.makeVulnerable();
