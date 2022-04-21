@@ -2,6 +2,13 @@ function StartupScene(game) {
     this._game = game;
     this._game = game;
     this._pressEnterText = new PressEnterText();
+
+    this._pacman = new Pacman(this, game);
+    this._pacman.setStrategy(new PacmanStartupSceneStrategy(this._pacman, this));
+    this._pacman.setCurrentSpeed(4);
+    this._pacman.setSpeed(4);
+    this._pacman.setPosition(new Position(90, 160));
+    this._pacman.setDirection(DIRECTION_RIGHT);
 }
 
 StartupScene.prototype.keyPressed = function(key) {
@@ -12,7 +19,7 @@ StartupScene.prototype.keyPressed = function(key) {
 
 StartupScene.prototype.tick = function() {
     this._pressEnterText.tick();
-
+    this._pacman.tick();
 };
 
 StartupScene.prototype.draw = function(ctx) {
@@ -23,6 +30,15 @@ StartupScene.prototype.draw = function(ctx) {
 
 StartupScene.prototype._drawText = function(ctx) {
     this._pressEnterText.draw(ctx);
+    this._pacman.draw(ctx);
+};
+
+StartupScene.prototype.getX = function() {
+    return 0;
+};
+
+StartupScene.prototype.getY = function() {
+    return 0;
 };
 
 StartupScene.prototype._drawTitle = function(ctx) {
