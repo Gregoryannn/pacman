@@ -1,7 +1,8 @@
 var TILE_SIZE = 16;
 
-function PlayScene(game) {
+function PlayScene(game, maps) {
     this._game = game;
+    this._maps = maps || this._getDefaultMaps();
 
     this._readyMessage = new ReadyMessage();
     this._readyMessage.setVisibilityDuration(50);
@@ -20,12 +21,15 @@ function PlayScene(game) {
     this.setGhostScoreValue(200);
     this._pointsMessage = new PointsMessage(this);
 }
+
 PlayScene.prototype.getX = function() {
     return this._x;
 };
+
 PlayScene.prototype.getY = function() {
     return this._y;
 };
+
 PlayScene.prototype.tick = function() {
     this._readyMessage.tick();
     this._pointsMessage.tick();
@@ -41,6 +45,7 @@ PlayScene.prototype.tick = function() {
         }
     }
 };
+
 PlayScene.prototype.draw = function(ctx) {
     for (var wall in this._walls) {
         this._walls[wall].draw(ctx);
@@ -62,6 +67,7 @@ PlayScene.prototype.draw = function(ctx) {
     this._pointsMessage.draw(ctx);
     this._readyMessage.draw(ctx);
 };
+
 PlayScene.prototype._drawScore = function(ctx) {
     var SCORE_X = 55;
     var SCORE_Y = 30;
@@ -70,6 +76,7 @@ PlayScene.prototype._drawScore = function(ctx) {
     var text = "SCORE: " + this._score;
     ctx.fillText(text, SCORE_X, SCORE_Y);
 };
+
 PlayScene.prototype._drawLives = function(ctx) {
     var x = 55;
     var width = 18
@@ -79,15 +86,19 @@ PlayScene.prototype._drawLives = function(ctx) {
         ctx.drawImage(ImageManager.getImage('pacman_3l'), x + i * width, y);
     }
 };
+
 PlayScene.prototype.keyPressed = function(key) {
     this._pacman.keyPressed(key);
 };
+
 PlayScene.prototype.getReadyMessage = function() {
     return this._readyMessage;
 };
+
 PlayScene.prototype.getPacman = function() {
     return this._pacman;
 };
+
 PlayScene.prototype.loadMap = function(map) {
     this._walls = [];
     this._pellets = [];
@@ -126,6 +137,7 @@ PlayScene.prototype.loadMap = function(map) {
             } else if (tile == 'C') {
                 this._pacman.setStartPosition(position);
                 this._pacman.setPosition(position);
+                this._pacman.setFrame(0);
             } else if (tile == '1' || tile == '2' || tile == '3' || tile == '4') {
                 var name;
                 if (tile == '1') {
@@ -213,15 +225,17 @@ PlayScene.prototype._getWallImage = function(map, row, col) {
         (col == lastCol || map[row][col + 1] != '#')) {
         return 'wall_mr';
     }
-
     return null;
 };
+
 PlayScene.prototype.getWalls = function() {
     return this._walls;
 };
+
 PlayScene.prototype.getPellets = function() {
     return this._pellets;
 };
+
 PlayScene.prototype.removePellet = function(pellet) {
     for (var i = 0; i < this._pellets.length; ++i) {
         if (this._pellets[i] === pellet) {
@@ -230,6 +244,7 @@ PlayScene.prototype.removePellet = function(pellet) {
         }
     }
 };
+
 PlayScene.prototype.getGate = function() {
     return this._gate;
 };
@@ -240,21 +255,30 @@ PlayScene.prototype.getGate = function() {
 PlayScene.prototype.getLairPosition = function() {
     return this._lairPosition;
 };
+
 PlayScene.prototype.getGhosts = function() {
     return this._ghosts;
 };
+
 PlayScene.prototype.getCurrentLevel = function() {
     return this._currentLevel;
 };
+
 PlayScene.prototype.nextLevel = function() {
     this._currentLevel++;
+    if ((this._currentLevel - 1) >= this._maps.length) {
+        this._game.setScene(new StartupScene(this._game));
+        return;
+    }
     this.loadMap(this._getMapForCurrentLevel());
     this._readyMessage.show();
 };
+
 PlayScene.prototype.setGhostScoreValue = function(value) {
     this._ghostScoreValue = value;
     this._previousEatenGhostScoreValue = 0;
 };
+
 PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
     var amount = this._previousEatenGhostScoreValue == 0 ? this._ghostScoreValue : this._previousEatenGhostScoreValue * 2;
     this.increaseScore(amount);
@@ -305,8 +329,12 @@ PlayScene.prototype.getBottom = function() {
 };
 
 PlayScene.prototype._getMapForCurrentLevel = function() {
-    if (this._currentLevel == 1) {
-        return ['###########################',
+    return this._maps[this._currentLevel - 1];
+};
+
+PlayScene.prototype._getDefaultMaps = function() {
+    return [
+        ['###########################',
             '#            #            #',
             '# #### ##### # ##### #### #',
             '# #  # #   # # #   # #  # #',
@@ -329,9 +357,9 @@ PlayScene.prototype._getMapForCurrentLevel = function() {
             '# ########## # ########## #',
             '#                         #',
             '###########################'
-        ];
-    } else if (this._currentLevel == 2) {
-        return ['###########################',
+        ],
+
+        ['###########################',
             '#............#............#',
             '#.####.#####.#.#####.####.#',
             '#O#  #.#   #.#.#   #.#  #O#',
@@ -354,35 +382,11 @@ PlayScene.prototype._getMapForCurrentLevel = function() {
             '#.##########.#.##########.#',
             '#.........................#',
             '###########################'
-        ];
-    } else if (this._currentLevel == 3) {
-        return ['###########################',
-            '#............#............#',
-            '#.####.#####.#.#####.####.#',
-            '#O#  #.#   #.#.#   #.#  #O#',
-            '#.####.#####.#.#####.####.#',
-            '#.........................#',
-            '#.######.#.#####.#.######.#',
-            '#........#...#...#........#',
-            '########.### # ###.########',
-            '       #.#   1   #.#       ',
-            '########.# ##-## #.########',
-            '        .  #234#  .        ',
-            '########.# ##### #.########',
-            '       #.#   C   #.#       ',
-            '########.# ##### #.########',
-            '#............#............#',
-            '#.###.######.#.######.###.#',
-            '#O..#.................#..O#',
-            '###.#.#.###########.#.#.###',
-            '#.....#......#......#.....#',
-            '#.##########.#.##########.#',
-            '#.........................#',
-            '###########################'
-        ];
-    }
-    return [];
+        ]
+    ];
+
 };
+
 PlayScene.prototype.getWaypointsToLairForGhost = function(ghost) {
     var result = [];
     var from = [this.pxToCoord(ghost.getX()), this.pxToCoord(ghost.getY())];
@@ -393,6 +397,7 @@ PlayScene.prototype.getWaypointsToLairForGhost = function(ghost) {
     }
     return result;
 };
+
 PlayScene.prototype._getGrid = function() {
     var result = this._getEmptyGrid();
     for (var i = 0; i < this._walls.length; ++i) {
@@ -402,9 +407,11 @@ PlayScene.prototype._getGrid = function() {
     }
     return result;
 };
+
 PlayScene.prototype.pxToCoord = function(px) {
     return Math.floor(px / TILE_SIZE);
 };
+
 PlayScene.prototype._getEmptyGrid = function() {
     var result = [];
     for (var r = 0; r < this._mapRows; ++r) {
@@ -416,6 +423,7 @@ PlayScene.prototype._getEmptyGrid = function() {
     }
     return result;
 };
+
 PlayScene.prototype.getWallAtTile = function(col, row) {
     var position = new Position(col * TILE_SIZE, row * TILE_SIZE);
     for (var wall in this._walls) {
