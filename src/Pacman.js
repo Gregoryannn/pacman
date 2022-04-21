@@ -25,6 +25,11 @@ Pacman.prototype.isVisible = function() {
     return this._visible;
 };
 
+Pacman.prototype.setFrame = function(frame) {
+    this._frame = frame;
+};
+
+
 Pacman.prototype.requestNewDirection = function(direction) {
     if (this._sprite.willCollideWithWallIfMovedInDirection(direction)) {
         return;

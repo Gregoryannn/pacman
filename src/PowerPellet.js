@@ -1,8 +1,6 @@
 function PowerPellet() {
     this._rect = new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE });
-    this._blinkDuration = 13;
-    this._blinkTimer = 0;
-    this._visible = true;
+    this._blinkTimer = new BlinkTimer(13);
 }
 
 PowerPellet.prototype.getRect = function() {
@@ -12,29 +10,22 @@ PowerPellet.prototype.getValue = function() {
     return 300;
 };
 PowerPellet.prototype.setBlinkDuration = function(duration) {
-    this._blinkDuration = duration;
+    this._blinkTimer.setDuration(duration);
 };
 
 PowerPellet.prototype.isVisible = function() {
-    return this._visible;
+    return this._blinkTimer.isVisible();
 };
 
 PowerPellet.prototype.tick = function() {
-    this._tickBlinkTimer();
-};
-
-PowerPellet.prototype._tickBlinkTimer = function() {
-    this._blinkTimer++;
-    if (this._blinkTimer == this._blinkDuration) {
-        this._blinkTimer = 0;
-        this._visible = !this._visible;
+    if (!this._blinkTimer.isVisible()) {
+        return;
     }
-};
 
-PowerPellet.prototype.draw = function(ctx) {
-    if (this._visible) {
-        ctx.drawImage(ImageManager.getImage('power_pellet'), this.getX(), this.getY());
-    }
+    var x = this._scene.getX() + this.getX();
+    var y = this._scene.getY() + this.getY();
+
+    ctx.drawImage(ImageManager.getImage('power_pellet'), x, y);
 };
 
 
