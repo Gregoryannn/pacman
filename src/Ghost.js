@@ -28,6 +28,7 @@ function Ghost(name, scene) {
     this._vulnerableTimeLeft = 0;
     this._blink = false;
 }
+
 Ghost.prototype.getName = function() {
     return this._name;
 };
@@ -67,9 +68,11 @@ Ghost.prototype.tick = function() {
             this._setDirectionToCurrentWaypoint();
         }
         this._sprite.move(this.getDirection());
+        this._sprite.checkIfOutOfMapBounds();
     } else {
         this._tryTurnCorner();
         this._sprite.move(this.getDirection());
+        this._sprite.checkIfOutOfMapBounds();
         this._handleCollisionsWithWalls();
     }
 };

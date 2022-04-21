@@ -45,6 +45,7 @@ Pacman.prototype.tick = function() {
 
     this._advanceFrame();
     this._sprite.move(this._sprite.getDirection());
+    this._sprite.checkIfOutOfMapBounds();
     this._handleCollisionsWithWalls();
     this._handleCollisionsWithPellets();
     this._handleCollisionsWithGhosts();

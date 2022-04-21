@@ -40,11 +40,6 @@ Sprite.prototype.move = function(direction) {
 };
 
 Sprite.prototype._move = function(direction) {
-    this._move(direction);
-    this._checkIfOutOfMapBounds();
-};
-
-Sprite.prototype._move = function(direction) {
     if (direction == DIRECTION_RIGHT) {
         this._rect.move({ x: this._currentSpeed, y: 0 });
     } else if (direction == DIRECTION_LEFT) {
@@ -60,7 +55,8 @@ Sprite.prototype._move = function(direction) {
  * Check if sprite is out of map bounds and place it on the opposite side of
  * the map if necessary.
  */
-Sprite.prototype._checkIfOutOfMapBounds = function() {
+
+Sprite.prototype.checkIfOutOfMapBounds = function() {
     if (this.getRight() > this._scene.getRight()) {
         this.setPosition(new Position(this._scene.getLeft(), this.getY()));
     } else if (this.getLeft() < this._scene.getLeft()) {
