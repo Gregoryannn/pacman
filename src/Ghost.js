@@ -76,12 +76,14 @@ Ghost.prototype.tick = function() {
         this._handleCollisionsWithWalls();
     }
 };
+
 Ghost.prototype._advanceBodyFrame = function() {
     this._bodyFrame++;
     if (this._bodyFrame >= this._bodyFrames.length) {
         this._bodyFrame = 0;
     }
 };
+
 Ghost.prototype._setDirectionToCurrentWaypoint = function() {
     if (this._currentWaypoint.x == this.getX()) {
         if (this._currentWaypoint.y > this.getY()) {
@@ -97,16 +99,44 @@ Ghost.prototype._setDirectionToCurrentWaypoint = function() {
         }
     }
 };
+
 Ghost.prototype._tryTurnCorner = function() {
-    if (getRandomInt(0, 1)) {
+
+    // When ghost can continue moving in the current direction it has 50/50 chance
+    // on turning the corner.
+    if (!this._sprite.willCollideWithWallIfMovedInDirection(this.getDirection()) && getRandomInt(0, 1)) {
         return;
     }
+
     var possibleTurns = this._getPossibleTurns();
     if (possibleTurns.length == 0) {
         return;
     }
+
+    // Ghosts will try to get closer to Pacman.
+    for (var i = 0; i < possibleTurns.length; ++i) {
+        if (possibleTurns[i] == DIRECTION_LEFT && this._scene.getPacman().getX() < this.getX()) {
+            this._sprite.setDirection(DIRECTION_LEFT);
+            return;
+        }
+        if (possibleTurns[i] == DIRECTION_RIGHT && this._scene.getPacman().getX() > this.getX()) {
+            this._sprite.setDirection(DIRECTION_RIGHT);
+            return;
+        }
+        if (possibleTurns[i] == DIRECTION_UP && this._scene.getPacman().getY() < this.getY()) {
+            this._sprite.setDirection(DIRECTION_UP);
+            return;
+        }
+        if (possibleTurns[i] == DIRECTION_DOWN && this._scene.getPacman().getY() > this.getY()) {
+            this._sprite.setDirection(DIRECTION_DOWN);
+            return;
+        }
+    }
+
+    // If nothing of above is worked, just choose a random direction.
     this._sprite.setDirection(getRandomElementFromArray(possibleTurns));
 };
+
 Ghost.prototype._getPossibleTurns = function() {
     var result = [];
     if (this.getDirection() == DIRECTION_LEFT || this.getDirection() == DIRECTION_RIGHT) {
@@ -126,6 +156,7 @@ Ghost.prototype._getPossibleTurns = function() {
     }
     return result;
 };
+
 Ghost.prototype._handleCollisionsWithWalls = function() {
     var touchedWall = this._sprite.getTouchedWall();
     if (touchedWall != null) {
@@ -133,6 +164,7 @@ Ghost.prototype._handleCollisionsWithWalls = function() {
         this.setRandomDirectionNotBlockedByWall();
     }
 };
+
 Ghost.prototype.getDirectionsNotBlockedByWall = function() {
     var directions = [DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN];
     var notBlockedDirections = [];
@@ -143,33 +175,42 @@ Ghost.prototype.getDirectionsNotBlockedByWall = function() {
     }
     return notBlockedDirections;
 };
+
 Ghost.prototype.setRandomDirectionNotBlockedByWall = function() {
     var directions = this.getDirectionsNotBlockedByWall();
     this._sprite.setDirection(getRandomElementFromArray(directions));
 };
+
 Ghost.prototype.getState = function() {
     return this._state;
 };
+
 Ghost.prototype.makeNormal = function() {
     this._state = GHOST_STATE_NORMAL;
     this.setCurrentSpeed(GHOST_SPEED_NORMAL);
     this._blink = false;
 };
+
 Ghost.prototype.setVulnerabilityDuration = function(duration) {
     this._vulnerabilityDuration = duration;
 };
+
 Ghost.prototype.setFlashingDuration = function(duration) {
     this._flashingDuration = duration;
 };
+
 Ghost.prototype.setBlinkDuration = function(duration) {
     this._blinkDuration = duration;
 };
+
 Ghost.prototype.getVulnerableTimeLeft = function() {
     return this._vulnerableTimeLeft;
 };
+
 Ghost.prototype.isBlink = function() {
     return this._blink;
 };
+
 Ghost.prototype._advanceVulnerableStateTimers = function() {
     this._vulnerableTimeLeft--;
 
