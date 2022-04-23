@@ -226,6 +226,7 @@ Ghost.prototype._advanceVulnerableStateTimers = function() {
         }
     }
 };
+
 Ghost.prototype.makeVulnerable = function() {
     if (this._state == GHOST_STATE_NORMAL) {
         this._state = GHOST_STATE_VULNERABLE;
@@ -236,6 +237,7 @@ Ghost.prototype.makeVulnerable = function() {
         this._blink = false;
     }
 };
+
 Ghost.prototype.runHome = function() {
     this._state = GHOST_STATE_RUN_HOME;
     this.setCurrentSpeed(GHOST_SPEED_FAST);
@@ -259,6 +261,7 @@ Ghost.prototype.draw = function(ctx) {
         ctx.drawImage(ImageManager.getImage(this.getCurrentEyesFrame()), x, y);
     }
 };
+
 Ghost.prototype.getCurrentBodyFrame = function() {
     var index = this._bodyFrames[this._bodyFrame];
     var prefix = this._name;
@@ -271,61 +274,80 @@ Ghost.prototype.getCurrentBodyFrame = function() {
     }
     return result;
 };
+
 Ghost.prototype.getCurrentEyesFrame = function() {
     return 'eyes_' + this.getDirection();
 };
+
 /*--------------------------- Sprite delegation --------------------------------*/
+
 Ghost.prototype.getRect = function() {
     return this._sprite.getRect();
 };
+
 Ghost.prototype.setDirection = function(direction) {
     return this._sprite.setDirection(direction);
 };
+
 Ghost.prototype.getDirection = function() {
     return this._sprite.getDirection();
 };
+
 Ghost.prototype.setCurrentSpeed = function(speed) {
     this._sprite.setCurrentSpeed(speed);
 };
+
 Ghost.prototype.getCurrentSpeed = function() {
     return this._sprite.getCurrentSpeed();
 };
+
 Ghost.prototype.setPosition = function(position) {
     this._sprite.setPosition(position);
 };
+
 Ghost.prototype.getPosition = function() {
     return this._sprite.getPosition();
 };
+
 Ghost.prototype.getX = function() {
     return this._sprite.getX();
 };
+
 Ghost.prototype.getY = function() {
     return this._sprite.getY();
 };
+
 Ghost.prototype.getLeft = function() {
     return this._sprite.getLeft();
 };
+
 Ghost.prototype.getRight = function() {
     return this._sprite.getRight();
 };
 Ghost.prototype.getTop = function() {
     return this._sprite.getTop();
 };
+
 Ghost.prototype.getBottom = function() {
     return this._sprite.getBottom();
 };
+
 Ghost.prototype.getWidth = function() {
     return this._sprite.getWidth();
 };
+
 Ghost.prototype.getHeight = function() {
     return this._sprite.getHeight();
 };
+
 Ghost.prototype.setStartPosition = function(position) {
     this._sprite.setStartPosition(position);
 };
+
 Ghost.prototype.getStartPosition = function() {
     return this._sprite.getStartPosition();
 };
+
 Ghost.prototype.placeToStartPosition = function() {
     this.makeNormal();
     this._sprite.placeToStartPosition();
