@@ -757,6 +757,7 @@ describe("Ghost animation", function() {
         expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_1');
     });
 });
+
 describe("When Pacman touches a ghost", function() {
     var map = ['###########',
         '#C  1     #',
@@ -764,13 +765,18 @@ describe("When Pacman touches a ghost", function() {
         '# 23    # #',
         '###########'
     ]
+
     var game, scene, pacman, ghost;
+
     beforeEach(function() {
         game = new Game();
         scene = new PlayScene(game);
         game.setScene(scene);
         scene.loadMap(map);
         scene.getReadyMessage().hide();
+        scene.getPacmanDiesPause().setDuration(0);
+
+
         pacman = scene.getPacman();
         pacman.requestNewDirection(DIRECTION_RIGHT);
         // remove from start position
@@ -782,27 +788,35 @@ describe("When Pacman touches a ghost", function() {
     });
 
     describe("and ghost is not vulnerable", function() {
+        it("Pacman should die", function() {
+            // Pacman and Ghosts should stay still for a certain amount of time.
+            scene.getPacmanDiesPause().setDuration(2);
+            game.tick();
+
+            var pacmanInitialPosition = pacman.getPosition();
+            var ghostInitialPosition = ghost.getPosition();
+            game.tick();
+
+            expect(pacman.getPosition()).toEqual(pacmanInitialPosition);
+            expect(ghost.getPosition()).toEqual(ghostInitialPosition);
+
+            game.tick();
+
+            // Pacman and Ghosts should be placed on their start positions.
+            expect(pacman.getPosition()).toEqual(pacman.getStartPosition());
+            expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
+        });
+
         it("Ready message should be visible", function() {
             expect(scene.getReadyMessage().isVisible()).toBeFalsy();
             game.tick();
             expect(scene.getReadyMessage().isVisible()).toBeTruthy();
         });
 
-        it("Pacman should be on the start position", function() {
-            expect(pacman.getPosition()).not.toEqual(pacman.getStartPosition());
-            game.tick();
-            expect(pacman.getPosition()).toEqual(pacman.getStartPosition());
-        });
-
         it("Pacman's mouth should be closed", function() {
             game.tick();
-            expect(pacman.getCurrentFrame()).toEqual('pacman_1');
-        });
-
-        it("Ghosts should be on their start positions", function() {
-            expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
             game.tick();
-            expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
+            expect(pacman.getCurrentFrame()).toEqual('pacman_1');
         });
 
         it("Ghosts should be in Normal state and have normal speed", function() {
@@ -810,6 +824,7 @@ describe("When Pacman touches a ghost", function() {
             ghostVulnerable.makeVulnerable();
             var ghostRunHome = scene.getGhosts()[2];
             ghostRunHome.runHome();
+            game.tick();
             game.tick();
             expect(ghostVulnerable.getState()).toEqual(GHOST_STATE_NORMAL);
             expect(ghostRunHome.getState()).toEqual(GHOST_STATE_NORMAL);
@@ -819,6 +834,7 @@ describe("When Pacman touches a ghost", function() {
 
         it("Pacman should lose one life", function() {
             expect(pacman.getLivesCount()).toEqual(2);
+            game.tick();
             game.tick();
             expect(pacman.getLivesCount()).toEqual(1);
         });
@@ -887,6 +903,7 @@ describe("When Pacman touches a ghost", function() {
         });
     });
 });
+
 describe("When ghost is in Run Home state", function() {
     it("it should move directly to the lair (a cell beneath the gate) and once there return to Normal state", function() {
         var game = new Game();
@@ -943,6 +960,7 @@ describe("When ghost is in Run Home state", function() {
         expect(ghost.getCurrentSpeed()).toEqual(GHOST_SPEED_NORMAL);
     });
 });
+
 describe("When vulnerable ghost collides with Pacman", function() {
     describe("and Pacman and a ghost move with normal speeds", function() {
         it("ghost should be at home in finite number of moves", function() {
@@ -978,6 +996,7 @@ describe("When vulnerable ghost collides with Pacman", function() {
         });
     });
 });
+
 describe("Power pellet", function() {
     it("should blink", function() {
         var game = new Game();
@@ -1004,6 +1023,7 @@ describe("Power pellet", function() {
         expect(powerPellet.isVisible()).toBeTruthy();
     });
 });
+
 describe("When Ghost is Vulnerable", function() {
     it("it should become Normal after a certain amount of time", function() {
         var game = new Game();
@@ -1068,6 +1088,7 @@ describe("When Ghost is Vulnerable", function() {
         expect(ghost.isBlink()).toEqual(false);
     });
 });
+
 describe("When Pacman goes off the map", function() {
     describe("it should appear from the opposite site of the map", function() {
         var game, scene, pacman;
@@ -1129,6 +1150,7 @@ describe("When Pacman goes off the map", function() {
         });
     });
 });
+
 describe("When Ghost goes off the map", function() {
     describe("it should appear from the opposite site of the map", function() {
         var game, scene;
@@ -1193,6 +1215,7 @@ describe("When Ghost goes off the map", function() {
         });
     });
 });
+
 describe("When Pacman eats Ghosts", function() {
     it("next eaten Ghost should increase the Score twice as much as the previous one", function() {
         var game = new Game();
@@ -1232,6 +1255,7 @@ describe("When Pacman eats Ghosts", function() {
         expect(scene.getScore()).toEqual(200 + 400 + 800 + 1600);
     });
 });
+
 describe("When Pacman eats a Power Pellet", function() {
     it("multiple eaten ghosts bonus should be reset", function() {
         var game = new Game();
@@ -1273,6 +1297,7 @@ describe("When Pacman eats a Power Pellet", function() {
         expect(scene.getScore()).toEqual(200 + 400 + 50 + 200 + 400);
     });
 });
+
 describe("When all pellets on the level are eaten", function() {
     var map = ['####',
         'C.O ',

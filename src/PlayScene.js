@@ -21,6 +21,7 @@ function PlayScene(game, maps) {
 
     this.setGhostScoreValue(200);
     this._pointsMessage = new PointsMessage(this);
+    this._pacmanDiesPause = new PacmanDiesPause(this);
 }
 
 PlayScene.prototype.getX = function() {
@@ -328,6 +329,11 @@ PlayScene.prototype.getTop = function() {
 PlayScene.prototype.getBottom = function() {
     return this.getHeight() - 1;
 };
+
+PlayScene.prototype.getPacmanDiesPause = function() {
+    return this._pacmanDiesPause;
+};
+
 
 PlayScene.prototype._getMapForCurrentLevel = function() {
     return this._maps[this._currentLevel - 1];
