@@ -1,3 +1,7 @@
+var EVENT_PELLET_EATEN = 'EVENT_PELLET_EATEN';
+var EVENT_POWER_PELLET_EATEN = 'EVENT_POWER_PELLET_EATEN';
+var EVENT_GHOST_EATEN = 'EVENT_GHOST_EATEN';
+
 function Pacman(scene, game) {
     this._scene = scene;
     this._game = game;
@@ -9,6 +13,7 @@ function Pacman(scene, game) {
     this._frame = 0;
 
     this._livesCount = 2;
+    this._eatenPelletSound = 'pellet1';
 }
 
 Pacman.prototype.setLivesCount = function(lives) {
@@ -74,8 +79,6 @@ Pacman.prototype.keyPressed = function(key) {
     }
 };
 
-
-
 Pacman.prototype.handleCollisionsWithWalls = function() {
     var touchedWall = this._sprite.getTouchedWall();
     if (touchedWall != null) {
@@ -89,8 +92,13 @@ Pacman.prototype.handleCollisionsWithPellets = function() {
     for (var pellet in pellets) {
         if (this._sprite.collidedWith(pellets[pellet])) {
             this._scene.increaseScore(pellets[pellet].getValue());
+
             if (pellets[pellet] instanceof PowerPellet) {
                 this._scene.makeGhostsVulnerable();
+                this._game.getEventManager().fireEvent({ 'name': EVENT_POWER_PELLET_EATEN });
+            } else { // Normal pellet.
+                this._switchEatenPelletSound();
+                this._game.getEventManager().fireEvent({ 'name': EVENT_PELLET_EATEN, 'pacman': this });
             }
             this._scene.removePellet(pellets[pellet]);
             if (this._scene.getPellets().length == 0) {
@@ -100,6 +108,15 @@ Pacman.prototype.handleCollisionsWithPellets = function() {
         }
     }
 };
+
+Pacman.prototype._switchEatenPelletSound = function() {
+    this._eatenPelletSound = this._eatenPelletSound == 'pellet1' ? 'pellet2' : 'pellet1';
+};
+
+Pacman.prototype.getEatenPelletSound = function() {
+    return this._eatenPelletSound;
+};
+
 
 Pacman.prototype.handleCollisionsWithGhosts = function() {
     var ghosts = this._scene.getGhosts();
@@ -118,6 +135,7 @@ Pacman.prototype.handleCollisionsWithGhosts = function() {
                 this._scene.placeGhostsToStartPositions();
                 return;
             } else if (ghost.getState() == GHOST_STATE_VULNERABLE) {
+                this._game.getEventManager().fireEvent({ 'name': EVENT_GHOST_EATEN });
                 ghost.runHome();
                 this._scene.addScoreForEatenGhost(ghost);
             }
