@@ -21,7 +21,8 @@ function PlayScene(game, maps) {
 
     this.setGhostScoreValue(200);
     this._pointsMessage = new PointsMessage(this);
-    this._pacmanDiesPause = new PacmanDiesPause(this);
+    this._pacmanDiesPause = new PacmanDiesPause(this, game);
+
 }
 
 PlayScene.prototype.getX = function() {
@@ -334,6 +335,17 @@ PlayScene.prototype.getPacmanDiesPause = function() {
     return this._pacmanDiesPause;
 };
 
+PlayScene.prototype.hideGhosts = function() {
+    for (var i in this._ghosts) {
+        this._ghosts[i].setVisible(false);
+    }
+};
+
+PlayScene.prototype.showGhosts = function() {
+    for (var i in this._ghosts) {
+        this._ghosts[i].setVisible(true);
+    }
+};
 
 PlayScene.prototype._getMapForCurrentLevel = function() {
     return this._maps[this._currentLevel - 1];
