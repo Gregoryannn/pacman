@@ -10,6 +10,8 @@ function PlayScene(game, maps) {
     this._readyMessage.setVisibilityDuration(READY_MESSAGE_DURATION_LONG);
     this._readyMessage.show();
 
+    this._cherry = new Cherry(this);
+
     this._pacman = new Pacman(this, game);
     this._pacman.setStrategy(new PacmanPlaySceneStrategy(this._pacman, this));
     this._pacman.setSpeed(4);
@@ -49,6 +51,9 @@ PlayScene.prototype.tick = function() {
             this._pellets[pellet].tick();
         }
     }
+
+    this._cherry.tick();
+
 };
 
 PlayScene.prototype.draw = function(ctx) {
@@ -60,11 +65,14 @@ PlayScene.prototype.draw = function(ctx) {
         this._pellets[pellet].draw(ctx);
     }
 
+    this._cherry.draw(ctx);
+    this._pacman.draw(ctx);
+
+
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].draw(ctx);
     }
 
-    this._pacman.draw(ctx);
 
     this._gate.draw(ctx);
     this._drawScore(ctx);
@@ -139,10 +147,15 @@ PlayScene.prototype.loadMap = function(map) {
                 position.y += (TILE_SIZE - GATE_HEIGHT) / 2 + 1;
                 gate.setPosition(position);
                 this._gate = gate;
+
             } else if (tile == 'C') {
                 this._pacman.setStartPosition(position);
                 this._pacman.setPosition(position);
                 this._pacman.setFrame(0);
+
+                this._cherry.setPosition(position);
+
+
             } else if (tile == '1' || tile == '2' || tile == '3' || tile == '4') {
                 var name;
                 if (tile == '1') {
@@ -253,10 +266,12 @@ PlayScene.prototype.removePellet = function(pellet) {
 PlayScene.prototype.getGate = function() {
     return this._gate;
 };
+
 /**
  * Ghost Lair is a cell just under the cell where the gate is located.
  * When ghosts are in Run Home state they move to lair cell for revival.
  */
+
 PlayScene.prototype.getLairPosition = function() {
     return this._lairPosition;
 };
@@ -294,41 +309,52 @@ PlayScene.prototype.addScoreForEatenGhost = function(ghost) {
     this._pointsMessage.setPosition(this._pacman.getPosition());
     this._pointsMessage.show();
 };
+
 PlayScene.prototype.getScore = function() {
     return this._score;
 };
+
 PlayScene.prototype.increaseScore = function(amount) {
     this._score += amount;
 };
+
 PlayScene.prototype.getPointsMessage = function() {
     return this._pointsMessage;
 };
+
 PlayScene.prototype.placeGhostsToStartPositions = function() {
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].placeToStartPosition();
     }
 };
+
 PlayScene.prototype.makeGhostsVulnerable = function() {
     this._previousEatenGhostScoreValue = 0;
     for (var ghost in this._ghosts) {
         this._ghosts[ghost].makeVulnerable();
     }
 };
+
 PlayScene.prototype.getWidth = function() {
     return this._mapCols * TILE_SIZE;
 };
+
 PlayScene.prototype.getHeight = function() {
     return this._mapRows * TILE_SIZE;
 };
+
 PlayScene.prototype.getLeft = function() {
     return 0;
 };
+
 PlayScene.prototype.getRight = function() {
     return this.getWidth() - 1;
 };
+
 PlayScene.prototype.getTop = function() {
     return 0;
 };
+
 PlayScene.prototype.getBottom = function() {
     return this.getHeight() - 1;
 };
@@ -347,6 +373,10 @@ PlayScene.prototype.showGhosts = function() {
     for (var i in this._ghosts) {
         this._ghosts[i].setVisible(true);
     }
+};
+
+PlayScene.prototype.getCherry = function() {
+    return this._cherry;
 };
 
 PlayScene.prototype._getMapForCurrentLevel = function() {
@@ -484,4 +514,10 @@ PlayScene.prototype.getWallAtTile = function(col, row) {
         }
     }
     return null;
+};
+
+PlayScene.prototype.isPause = function() {
+    return this._readyMessage.isVisible() ||
+        this._pointsMessage.isVisible() ||
+        this._pacmanDiesPause.isActive();
 };

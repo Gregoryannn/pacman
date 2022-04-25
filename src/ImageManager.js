@@ -10,6 +10,10 @@ var ImageManager = (function() {
         wall_b: null,
         wall_l: null,
         wall_r: null,
+        wall_mt: null,
+        wall_mb: null,
+        wall_ml: null,
+        wall_mr: null,
 
         pacman_1: null,
         pacman_2l: null,
@@ -20,7 +24,6 @@ var ImageManager = (function() {
         pacman_3u: null,
         pacman_2d: null,
         pacman_3d: null,
-
 
         pacman_dies_1: null,
         pacman_dies_2: null,
@@ -34,7 +37,6 @@ var ImageManager = (function() {
         pacman_dies_10: null,
         pacman_dies_11: null,
         pacman_dies_12: null,
-
 
         blinky_1: null,
         blinky_2: null,
@@ -59,7 +61,9 @@ var ImageManager = (function() {
         eyes_d: null,
 
         pellet: null,
-        power_pellet: null
+        power_pellet: null,
+
+        cherry: null
     };
 
     for (var i in images) {
