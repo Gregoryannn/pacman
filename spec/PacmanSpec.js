@@ -944,8 +944,17 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
             game.tick();
-            expect(ghost.isVisible()).toBeFalsy();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_12');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_12');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_12');
+            game.tick();
+            expect(ghost.isVisible()).toBeFalsy();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_12');
+
             game.tick();
             expect(ghost.isVisible()).toBeTruthy();
             expect(pacman.getDeathFrame()).toEqual(-1);
