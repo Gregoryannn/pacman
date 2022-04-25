@@ -4,6 +4,7 @@ describe("When game is just started", function() {
         expect(game.getScene() instanceof StartupScene).toBeTruthy();
     });
 });
+
 describe("When on Startup scene", function() {
     var game;
 
@@ -25,6 +26,7 @@ describe("When on Startup scene", function() {
         });
     });
 });
+
 describe("Game", function() {
     describe("#draw", function() {
         it("should delegate call to scene", function() {
@@ -37,6 +39,7 @@ describe("Game", function() {
         });
     });
 });
+
 describe("PlayScene", function() {
     var game, scene;
 
@@ -176,6 +179,7 @@ describe("PlayScene", function() {
         expect(scene.getBottom()).toEqual(HEIGHT - 1);
     });
 });
+
 describe("When Play scene is just started", function() {
     var game, playScene;
 
@@ -183,6 +187,10 @@ describe("When Play scene is just started", function() {
         game = new Game();
         playScene = new PlayScene(game);
         game.setScene(playScene);
+    });
+
+    it("Ready message should be visible for a long time (while intro music is played)", function() {
+        expect(playScene.getReadyMessage().getTimeToHide()).toEqual(READY_MESSAGE_DURATION_LONG);
     });
 
     it("Ready message should be visible for a certain amount of time", function() {
@@ -243,6 +251,16 @@ describe("When Play scene is just started", function() {
     });
 });
 
+describe("When Play scene is started", function() {
+    it("EVENT_PLAYSCENE_READY should be fired", function() {
+        var game = new Game();
+        var eventManager = game.getEventManager();
+        spyOn(eventManager, 'fireEvent');
+        var playScene = new PlayScene(game);
+        game.setScene(playScene);
+        expect(eventManager.fireEvent).toHaveBeenCalledWith({ 'name': EVENT_PLAYSCENE_READY });
+    });
+});
 
 describe("When on Play scene and Ready message is visible", function() {
     var map = ['###########',
@@ -287,6 +305,7 @@ describe("When on Play scene and Ready message is visible", function() {
         expect(ghosts[0].getPosition()).toEqual(ghosts[0].getStartPosition());
     });
 });
+
 describe("When on Play scene and Ready message is hidden", function() {
     it("Ghosts should move", function() {
         var game = new Game();
@@ -300,6 +319,7 @@ describe("When on Play scene and Ready message is hidden", function() {
         expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
     });
 });
+
 describe("ReadyMessage", function() {
     describe("#hide", function() {
         it("should hide message", function() {
@@ -311,6 +331,7 @@ describe("ReadyMessage", function() {
         });
     });
 });
+
 describe("Pacman movement", function() {
     var SPEED = 2;
     var game, playScene, pacman, INIT_X, INIT_Y;
@@ -329,6 +350,7 @@ describe("Pacman movement", function() {
             '    # #    ',
             '    ###    '
         ];
+
         playScene.loadMap(map);
         playScene.getReadyMessage().hide();
         pacman = playScene.getPacman();
@@ -361,6 +383,7 @@ describe("Pacman movement", function() {
         expect(pacman.getPosition()).toEqual(new Position(INIT_X, INIT_Y + SPEED));
     });
 });
+
 describe("Pacman animation", function() {
     var game, playScene, pacman, INIT_X, INIT_Y;
 
@@ -378,6 +401,7 @@ describe("Pacman animation", function() {
             '    # #    ',
             '    ###    '
         ];
+
         playScene.loadMap(map);
         playScene.getReadyMessage().hide();
         pacman = playScene.getPacman();
@@ -443,6 +467,7 @@ describe("Pacman animation", function() {
         expect(pacman.getCurrentFrame()).toEqual('pacman_2d');
     });
 });
+
 describe("Pacman shouldn't move through the walls", function() {
     var map = ['###',
         '#C#',
@@ -458,6 +483,7 @@ describe("Pacman shouldn't move through the walls", function() {
         pacman = playScene.getPacman();
         INITIAL_POS = pacman.getPosition();
     });
+
     it("when moving right", function() {
         checkDirection(KEY_RIGHT);
     });
@@ -479,6 +505,7 @@ describe("Pacman shouldn't move through the walls", function() {
         expect(pacman.getPosition()).toEqual(INITIAL_POS);
     }
 });
+
 describe("When Pacman is collided with wall and stopped and then is given a new direction", function() {
     it("Pacman should regain its speed", function() {
         var SPEED = 2;
@@ -505,6 +532,7 @@ describe("When Pacman is collided with wall and stopped and then is given a new 
         expect(pacman.getCurrentSpeed()).toEqual(SPEED);
     });
 });
+
 describe("When Pacman is moving and is given a command to change direction", function() {
     describe("and this direction is blocked by a wall", function() {
         it("Pacman's current direction shouldn't change", function() {
@@ -518,6 +546,7 @@ describe("When Pacman is moving and is given a command to change direction", fun
                 '## ##',
                 '#####'
             ];
+
             playScene.loadMap(map);
             playScene.getReadyMessage().hide();
             var pacman = playScene.getPacman();
@@ -536,8 +565,9 @@ describe("When Pacman is moving and is given a command to change direction", fun
         });
     });
 });
+
 describe("When Pacman collides with a pellet", function() {
-    var map = ['C..'];
+    var map = ['C...'];
     var game, playScene, pacman, PELLET_VALUE;
 
     beforeEach(function() {
@@ -559,11 +589,29 @@ describe("When Pacman collides with a pellet", function() {
     });
 
     it("pellet should disappear", function() {
-        expect(playScene.getPellets().length).toEqual(2);
+        expect(playScene.getPellets().length).toEqual(3);
         game.tick();
-        expect(playScene.getPellets().length).toEqual(1);
+        expect(playScene.getPellets().length).toEqual(2);
+    });
+
+    it("EVENT_PELLET_EATEN event should be fired", function() {
+        var eventManager = game.getEventManager();
+        spyOn(eventManager, 'fireEvent');
+        game.tick();
+        expect(eventManager.fireEvent).toHaveBeenCalledWith({ 'name': EVENT_PELLET_EATEN, 'pacman': pacman });
+    });
+
+    it("two played sounds should be switched after each eaten pellet", function() {
+        expect(pacman.getEatenPelletSound()).toEqual('pellet1');
+        game.tick();
+        expect(pacman.getEatenPelletSound()).toEqual('pellet2');
+        game.tick();
+        expect(pacman.getEatenPelletSound()).toEqual('pellet1');
+        game.tick();
+        expect(pacman.getEatenPelletSound()).toEqual('pellet2');
     });
 });
+
 describe("When Pacman collides with a power pellet", function() {
     var map = ['###########',
         '#CO12     #',
@@ -571,6 +619,7 @@ describe("When Pacman collides with a power pellet", function() {
         '#  .    # #',
         '###########'
     ]
+
     var game, playScene, pacman, ghostNormal, ghostRunHome;
 
     beforeEach(function() {
@@ -600,7 +649,15 @@ describe("When Pacman collides with a power pellet", function() {
         game.tick();
         expect(ghostNormal.getCurrentSpeed()).toEqual(GHOST_SPEED_SLOW);
     });
+
+    it("EVENT_POWER_PELLET_EATEN event should be fired", function() {
+        var eventManager = game.getEventManager();
+        spyOn(eventManager, 'fireEvent');
+        game.tick();
+        expect(eventManager.fireEvent).toHaveBeenCalledWith({ 'name': EVENT_POWER_PELLET_EATEN });
+    });
 });
+
 describe("When Pacman collides with a power pellet", function() {
     it("vulnerability time and blink flag of already vulnerable ghosts should be reset", function() {
         var map = ['###########',
@@ -609,6 +666,7 @@ describe("When Pacman collides with a power pellet", function() {
             '#   1 . # #',
             '###########'
         ];
+
         var game = new Game();
         var playScene = new PlayScene(game);
         game.setScene(playScene);
@@ -634,6 +692,7 @@ describe("When Pacman collides with a power pellet", function() {
         expect(ghost.getCurrentBodyFrame()).toEqual('vulnerable_2');
     });
 });
+
 describe("Ghost", function() {
     describe("#getRandomDirectionNotBlockedByWall", function() {
         var game, playScene;
@@ -708,6 +767,7 @@ describe("Ghost", function() {
         }
     });
 });
+
 describe("Ghost animation", function() {
     var map = ['###########',
         '#  1      #',
@@ -740,7 +800,6 @@ describe("Ghost animation", function() {
         expect(blinky.getCurrentBodyFrame()).toEqual('blinky_1');
         expect(blinky.getCurrentEyesFrame()).toEqual('eyes_r');
         blinky.setDirection(DIRECTION_LEFT);
-
         game.tick();
         expect(blinky.getCurrentBodyFrame()).toEqual('blinky_2');
         expect(blinky.getCurrentEyesFrame()).toEqual('eyes_l');
@@ -769,19 +828,18 @@ describe("When Pacman touches a ghost", function() {
     var game, scene, pacman, ghost;
 
     beforeEach(function() {
+
         game = new Game();
         scene = new PlayScene(game);
         game.setScene(scene);
         scene.loadMap(map);
         scene.getReadyMessage().hide();
         scene.getPacmanDiesPause().setDuration(0);
-
         pacman = scene.getPacman();
         pacman.requestNewDirection(DIRECTION_RIGHT);
         // remove from start position
         pacman.setPosition(new Position(TILE_SIZE * 2, TILE_SIZE));
         pacman.skipDiesAnimation();
-
         ghost = scene.getGhosts()[0];
         ghost.setCurrentSpeed(0);
         // remove from start position
@@ -792,16 +850,11 @@ describe("When Pacman touches a ghost", function() {
         it("Pacman should stay still for a certain amount of time", function() {
             scene.getPacmanDiesPause().setDuration(2);
             game.tick();
-
             var pacmanInitialPosition = pacman.getPosition();
             game.tick();
-
             expect(pacman.getPosition()).toEqual(pacmanInitialPosition);
             game.tick();
-
-            // Pacman and Ghosts should be placed on their start positions.
-            expect(pacman.getPosition()).toEqual(pacman.getStartPosition());
-            expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
+            expect(pacman.getPosition()).toEqual(pacmanInitialPosition);
         });
 
         it("Ghosts should stay still for a certain amount of time", function() {
@@ -809,21 +862,27 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             var ghostInitialPosition = ghost.getPosition();
             game.tick();
-
             expect(ghost.getPosition()).toEqual(ghostInitialPosition);
             game.tick();
-
             expect(ghost.getPosition()).toEqual(ghostInitialPosition);
         });
 
         it("Pacman Dies animation should be played", function() {
+            var eventManager = game.getEventManager();
+            spyOn(eventManager, 'fireEvent');
+
             pacman.playDiesAnimation();
             game.tick();
             game.tick();
+            expect(eventManager.fireEvent).toHaveBeenCalledWith({ 'name': EVENT_PACMAN_DIES_ANIMATION_STARTED });
             expect(ghost.isVisible()).toBeFalsy();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_1');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_1');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_1');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_2');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_2');
             game.tick();
@@ -833,9 +892,15 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_3');
             game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_3');
+            game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_4');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_4');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_4');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_5');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_5');
             game.tick();
@@ -845,9 +910,15 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_6');
             game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_6');
+            game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_7');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_7');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_7');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_8');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_8');
             game.tick();
@@ -857,40 +928,49 @@ describe("When Pacman touches a ghost", function() {
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_9');
             game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_9');
+            game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_10');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_10');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_10');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
+            game.tick();
+            expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
             game.tick();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
             game.tick();
             expect(ghost.isVisible()).toBeFalsy();
             expect(pacman.getCurrentFrame()).toEqual('pacman_dies_11');
-
-
             game.tick();
             expect(ghost.isVisible()).toBeTruthy();
             expect(pacman.getDeathFrame()).toEqual(-1);
-
-        });
-
-        it("Ghosts should be placed on their start positions", function() {
-            expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
-            game.tick();
-            game.tick();
         });
 
         it("Pacman should be placed on its start position", function() {
             expect(pacman.getPosition()).not.toEqual(pacman.getStartPosition());
             game.tick();
             game.tick();
-
             expect(pacman.getPosition()).toEqual(pacman.getStartPosition());
+        });
+
+        it("Ghosts should be placed on their start positions", function() {
+            expect(ghost.getPosition()).not.toEqual(ghost.getStartPosition());
+            game.tick();
+            game.tick();
+            expect(ghost.getPosition()).toEqual(ghost.getStartPosition());
         });
 
         it("Ready message should be visible", function() {
             expect(scene.getReadyMessage().isVisible()).toBeFalsy();
             game.tick();
+            game.tick();
             expect(scene.getReadyMessage().isVisible()).toBeTruthy();
+            expect(scene.getReadyMessage().getTimeToHide()).toEqual(READY_MESSAGE_DURATION_SHORT);
         });
 
         it("Pacman's mouth should be closed", function() {
@@ -922,6 +1002,7 @@ describe("When Pacman touches a ghost", function() {
         describe("and Pacman has no lives left", function() {
             it("startup screen should appear", function() {
                 pacman.setLivesCount(0);
+                game.tick();
                 game.tick();
                 expect(game.getScene() instanceof StartupScene).toBeTruthy();
             });
@@ -981,6 +1062,13 @@ describe("When Pacman touches a ghost", function() {
             expect(pacman.isVisible()).toBeTruthy();
             expect(ghost.isVisible()).toBeTruthy();
         });
+
+        it("EVENT_GHOST_EATEN event should be fired", function() {
+            var eventManager = game.getEventManager();
+            spyOn(eventManager, 'fireEvent');
+            game.tick();
+            expect(eventManager.fireEvent).toHaveBeenCalledWith({ 'name': EVENT_GHOST_EATEN });
+        });
     });
 });
 
@@ -998,7 +1086,6 @@ describe("When ghost is in Run Home state", function() {
             '#   #     ###     #   #',
             '#######################'
         ];
-
         scene.loadMap(map);
         scene.getReadyMessage().hide();
 
@@ -1059,6 +1146,7 @@ describe("When vulnerable ghost collides with Pacman", function() {
                 '#                           #',
                 '#############################'
             ];
+
             scene.loadMap(map);
             scene.getReadyMessage().hide();
             scene.getPointsMessage().setVisibilityDuration(0);
@@ -1312,6 +1400,7 @@ describe("When Pacman eats Ghosts", function() {
             '#       #',
             '#########'
         ];
+
         scene.loadMap(map);
         scene.setGhostScoreValue(200);
         scene.getPointsMessage().setVisibilityDuration(0);
@@ -1415,8 +1504,6 @@ describe("When all pellets on the level are eaten", function() {
         expect(scene.getReadyMessage().isVisible()).toBeTruthy();
     });
 });
-
-
 describe("When all pellets on the level are eaten", function() {
     describe("and this is the last level", function() {
         it("Startup scene should be shown", function() {
@@ -1429,7 +1516,6 @@ describe("When all pellets on the level are eaten", function() {
             var scene = new PlayScene(game, maps);
             game.setScene(scene);
             scene.getReadyMessage().hide();
-
             var pacman = scene.getPacman();
             pacman.setSpeed(TILE_SIZE);
             pacman.requestNewDirection(DIRECTION_RIGHT);
@@ -1438,5 +1524,27 @@ describe("When all pellets on the level are eaten", function() {
 
             expect(game.getScene() instanceof StartupScene).toBeTruthy();
         });
+    });
+});
+describe("Event Manager", function() {
+    it("should notify subscribers about events", function() {
+        var EVENT_1 = { name: 'event_1' };
+        var EVENT_2 = { name: 'event_2' };
+
+        var eventManager = new EventManager();
+
+        var subscriber1 = jasmine.createSpyObj('subscriber', ['notify']);
+        var subscriber2 = jasmine.createSpyObj('subscriber', ['notify']);
+
+        eventManager.addSubscriber(subscriber1, ['event_1']);
+        eventManager.addSubscriber(subscriber2, ['event_1', 'event_2']);
+
+        eventManager.fireEvent(EVENT_1);
+        eventManager.fireEvent(EVENT_2);
+
+        expect(subscriber1.notify).toHaveBeenCalledWith(EVENT_1);
+        expect(subscriber2.notify).toHaveBeenCalledWith(EVENT_1);
+        expect(subscriber1.notify).not.toHaveBeenCalledWith(EVENT_2);
+        expect(subscriber2.notify).toHaveBeenCalledWith(EVENT_2);
     });
 });
