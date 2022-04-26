@@ -1,4 +1,4 @@
-var ImageManager = (function() {
+var ImageManager = (function () {
     var images = {
         wall_h: null,
         wall_v: null,
@@ -73,7 +73,7 @@ var ImageManager = (function() {
     }
 
     return {
-        getImage: function(name) {
+        getImage: function (name) {
             return images[name];
         }
     };

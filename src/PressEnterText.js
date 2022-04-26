@@ -2,11 +2,11 @@ function PressEnterText() {
     this._blinkTimer = new BlinkTimer(15);
 }
 
-PressEnterText.prototype.tick = function() {
+PressEnterText.prototype.tick = function () {
     this._blinkTimer.tick();
 };
 
-PressEnterText.prototype.draw = function(ctx) {
+PressEnterText.prototype.draw = function (ctx) {
     if (!this._blinkTimer.isVisible()) {
         return;
     }

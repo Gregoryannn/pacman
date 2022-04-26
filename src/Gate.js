@@ -5,11 +5,11 @@ function Gate(scene) {
     this._rect = new Rect({ x: 0, y: 0, w: TILE_SIZE, h: GATE_HEIGHT });
 }
 
-Gate.prototype.getRect = function() {
+Gate.prototype.getRect = function () {
     return this._rect;
 };
 
-Gate.prototype.draw = function(ctx) {
+Gate.prototype.draw = function (ctx) {
     var x = this._scene.getX() + this.getX();
     var y = this._scene.getY() + this.getY();
 
@@ -20,42 +20,42 @@ Gate.prototype.draw = function(ctx) {
 
 /*--------------------------- Rect delegation --------------------------------*/
 
-Gate.prototype.setPosition = function(position) {
+Gate.prototype.setPosition = function (position) {
     this._rect.setPosition(position);
 };
 
-Gate.prototype.getPosition = function() {
+Gate.prototype.getPosition = function () {
     return this._rect.getPosition();
 };
 
-Gate.prototype.getX = function() {
+Gate.prototype.getX = function () {
     return this._rect.getX();
 };
 
-Gate.prototype.getY = function() {
+Gate.prototype.getY = function () {
     return this._rect.getY();
 };
 
-Gate.prototype.getLeft = function() {
+Gate.prototype.getLeft = function () {
     return this._rect.getLeft();
 };
 
-Gate.prototype.getRight = function() {
+Gate.prototype.getRight = function () {
     return this._rect.getRight();
 };
 
-Gate.prototype.getTop = function() {
+Gate.prototype.getTop = function () {
     return this._rect.getTop();
 };
 
-Gate.prototype.getBottom = function() {
+Gate.prototype.getBottom = function () {
     return this._rect.getBottom();
 };
 
-Gate.prototype.getWidth = function() {
+Gate.prototype.getWidth = function () {
     return this._rect.getWidth();
 };
 
-Gate.prototype.getHeight = function() {
+Gate.prototype.getHeight = function () {
     return this._rect.getHeight();
-};
+};};

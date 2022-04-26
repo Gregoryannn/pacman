@@ -3,7 +3,7 @@ function PacmanPlaySceneStrategy(pacman, scene) {
     this._scene = scene;
 }
 
-PacmanPlaySceneStrategy.prototype.tick = function() {
+PacmanPlaySceneStrategy.prototype.tick = function () {
     if (this._scene.isPause()) {
         return;
     }

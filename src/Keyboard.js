@@ -11,20 +11,20 @@ function Keyboard(game) {
     this._listen();
 }
 
-Keyboard.prototype._listen = function() {
+Keyboard.prototype._listen = function () {
     var that = this;
-    $(document).keydown(function(event) {
+    $(document).keydown(function (event) {
         that._keysRealTime[event.which] = true;
         that._keysCurrentFrame[event.which] = true;
         event.preventDefault();
     });
-    $(document).keyup(function(event) {
+    $(document).keyup(function (event) {
         that._keysRealTime[event.which] = false;
         event.preventDefault();
     });
 };
 
-Keyboard.prototype.handleKeypresses = function() {
+Keyboard.prototype.handleKeypresses = function () {
     for (var key in this._keysCurrentFrame) {
         if (this._keysCurrentFrame[key]) {
             this._game.keyPressed(key);

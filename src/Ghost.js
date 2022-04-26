@@ -2,9 +2,11 @@ var GHOST_BLINKY = 'blinky';
 var GHOST_PINKY = 'pinky';
 var GHOST_INKY = 'inky';
 var GHOST_CLYDE = 'clyde';
+
 var GHOST_STATE_NORMAL = 'normal';
 var GHOST_STATE_VULNERABLE = 'vulnerable';
 var GHOST_STATE_RUN_HOME = 'run_home';
+
 var GHOST_SPEED_FAST = 8;
 var GHOST_SPEED_NORMAL = 4;
 var GHOST_SPEED_SLOW = 2;
@@ -29,19 +31,19 @@ function Ghost(name, scene) {
     this._blink = false;
 }
 
-Ghost.prototype.getName = function() {
+Ghost.prototype.getName = function () {
     return this._name;
 };
 
-Ghost.prototype.setVisible = function(value) {
+Ghost.prototype.setVisible = function (value) {
     this._visible = value;
 };
 
-Ghost.prototype.isVisible = function() {
+Ghost.prototype.isVisible = function () {
     return this._visible;
 };
 
-Ghost.prototype.tick = function() {
+Ghost.prototype.tick = function () {
     if (this._scene.isPause()) {
         return;
     }
@@ -68,7 +70,8 @@ Ghost.prototype.tick = function() {
         }
         this._sprite.move(this.getDirection());
         this._sprite.checkIfOutOfMapBounds();
-    } else {
+    }
+    else {
         this._tryTurnCorner();
         this._sprite.move(this.getDirection());
         this._sprite.checkIfOutOfMapBounds();
@@ -76,31 +79,33 @@ Ghost.prototype.tick = function() {
     }
 };
 
-Ghost.prototype._advanceBodyFrame = function() {
+Ghost.prototype._advanceBodyFrame = function () {
     this._bodyFrame++;
     if (this._bodyFrame >= this._bodyFrames.length) {
         this._bodyFrame = 0;
     }
 };
 
-Ghost.prototype._setDirectionToCurrentWaypoint = function() {
+Ghost.prototype._setDirectionToCurrentWaypoint = function () {
     if (this._currentWaypoint.x == this.getX()) {
         if (this._currentWaypoint.y > this.getY()) {
             this._sprite.setDirection(DIRECTION_DOWN);
-        } else {
+        }
+        else {
             this._sprite.setDirection(DIRECTION_UP);
         }
-    } else {
+    }
+    else {
         if (this._currentWaypoint.x > this.getX()) {
             this._sprite.setDirection(DIRECTION_RIGHT);
-        } else {
+        }
+        else {
             this._sprite.setDirection(DIRECTION_LEFT);
         }
     }
 };
 
-Ghost.prototype._tryTurnCorner = function() {
-
+Ghost.prototype._tryTurnCorner = function () {
     // When ghost can continue moving in the current direction it has 50/50 chance
     // on turning the corner.
     if (!this._sprite.willCollideWithWallIfMovedInDirection(this.getDirection()) && getRandomInt(0, 1)) {
@@ -136,7 +141,7 @@ Ghost.prototype._tryTurnCorner = function() {
     this._sprite.setDirection(getRandomElementFromArray(possibleTurns));
 };
 
-Ghost.prototype._getPossibleTurns = function() {
+Ghost.prototype._getPossibleTurns = function () {
     var result = [];
     if (this.getDirection() == DIRECTION_LEFT || this.getDirection() == DIRECTION_RIGHT) {
         if (!this._sprite.willCollideWithWallIfMovedInDirection(DIRECTION_UP)) {
@@ -145,7 +150,8 @@ Ghost.prototype._getPossibleTurns = function() {
         if (!this._sprite.willCollideWithWallIfMovedInDirection(DIRECTION_DOWN)) {
             result.push(DIRECTION_DOWN);
         }
-    } else {
+    }
+    else {
         if (!this._sprite.willCollideWithWallIfMovedInDirection(DIRECTION_LEFT)) {
             result.push(DIRECTION_LEFT);
         }
@@ -156,7 +162,7 @@ Ghost.prototype._getPossibleTurns = function() {
     return result;
 };
 
-Ghost.prototype._handleCollisionsWithWalls = function() {
+Ghost.prototype._handleCollisionsWithWalls = function () {
     var touchedWall = this._sprite.getTouchedWall();
     if (touchedWall != null) {
         this._sprite.resolveCollisionWithWall(touchedWall);
@@ -164,7 +170,7 @@ Ghost.prototype._handleCollisionsWithWalls = function() {
     }
 };
 
-Ghost.prototype.getDirectionsNotBlockedByWall = function() {
+Ghost.prototype.getDirectionsNotBlockedByWall = function () {
     var directions = [DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN];
     var notBlockedDirections = [];
     for (var i in directions) {
@@ -175,42 +181,42 @@ Ghost.prototype.getDirectionsNotBlockedByWall = function() {
     return notBlockedDirections;
 };
 
-Ghost.prototype.setRandomDirectionNotBlockedByWall = function() {
+Ghost.prototype.setRandomDirectionNotBlockedByWall = function () {
     var directions = this.getDirectionsNotBlockedByWall();
     this._sprite.setDirection(getRandomElementFromArray(directions));
 };
 
-Ghost.prototype.getState = function() {
+Ghost.prototype.getState = function () {
     return this._state;
 };
 
-Ghost.prototype.makeNormal = function() {
+Ghost.prototype.makeNormal = function () {
     this._state = GHOST_STATE_NORMAL;
     this.setCurrentSpeed(GHOST_SPEED_NORMAL);
     this._blink = false;
 };
 
-Ghost.prototype.setVulnerabilityDuration = function(duration) {
+Ghost.prototype.setVulnerabilityDuration = function (duration) {
     this._vulnerabilityDuration = duration;
 };
 
-Ghost.prototype.setFlashingDuration = function(duration) {
+Ghost.prototype.setFlashingDuration = function (duration) {
     this._flashingDuration = duration;
 };
 
-Ghost.prototype.setBlinkDuration = function(duration) {
+Ghost.prototype.setBlinkDuration = function (duration) {
     this._blinkDuration = duration;
 };
 
-Ghost.prototype.getVulnerableTimeLeft = function() {
+Ghost.prototype.getVulnerableTimeLeft = function () {
     return this._vulnerableTimeLeft;
 };
 
-Ghost.prototype.isBlink = function() {
+Ghost.prototype.isBlink = function () {
     return this._blink;
 };
 
-Ghost.prototype._advanceVulnerableStateTimers = function() {
+Ghost.prototype._advanceVulnerableStateTimers = function () {
     this._vulnerableTimeLeft--;
 
     if (this._flashingDuration == this._vulnerableTimeLeft) {
@@ -226,18 +232,19 @@ Ghost.prototype._advanceVulnerableStateTimers = function() {
     }
 };
 
-Ghost.prototype.makeVulnerable = function() {
+Ghost.prototype.makeVulnerable = function () {
     if (this._state == GHOST_STATE_NORMAL) {
         this._state = GHOST_STATE_VULNERABLE;
         this.setCurrentSpeed(GHOST_SPEED_SLOW);
         this._vulnerableTimeLeft = this._vulnerabilityDuration;
-    } else if (this._state == GHOST_STATE_VULNERABLE) {
+    }
+    else if (this._state == GHOST_STATE_VULNERABLE) {
         this._vulnerableTimeLeft = this._vulnerabilityDuration;
         this._blink = false;
     }
 };
 
-Ghost.prototype.runHome = function() {
+Ghost.prototype.runHome = function () {
     this._state = GHOST_STATE_RUN_HOME;
     this.setCurrentSpeed(GHOST_SPEED_FAST);
     this._wayPoints = this._scene.getWaypointsToLairForGhost(this);
@@ -245,7 +252,7 @@ Ghost.prototype.runHome = function() {
     this.setPosition(this._currentWaypoint);
 };
 
-Ghost.prototype.draw = function(ctx) {
+Ghost.prototype.draw = function (ctx) {
     if (!this._visible) {
         return;
     }
@@ -261,7 +268,7 @@ Ghost.prototype.draw = function(ctx) {
     }
 };
 
-Ghost.prototype.getCurrentBodyFrame = function() {
+Ghost.prototype.getCurrentBodyFrame = function () {
     var index = this._bodyFrames[this._bodyFrame];
     var prefix = this._name;
     if (this._state == GHOST_STATE_VULNERABLE) {
@@ -274,80 +281,82 @@ Ghost.prototype.getCurrentBodyFrame = function() {
     return result;
 };
 
-Ghost.prototype.getCurrentEyesFrame = function() {
+Ghost.prototype.getCurrentEyesFrame = function () {
     return 'eyes_' + this.getDirection();
 };
 
+
 /*--------------------------- Sprite delegation --------------------------------*/
 
-Ghost.prototype.getRect = function() {
+Ghost.prototype.getRect = function () {
     return this._sprite.getRect();
 };
 
-Ghost.prototype.setDirection = function(direction) {
+Ghost.prototype.setDirection = function (direction) {
     return this._sprite.setDirection(direction);
 };
 
-Ghost.prototype.getDirection = function() {
+Ghost.prototype.getDirection = function () {
     return this._sprite.getDirection();
 };
 
-Ghost.prototype.setCurrentSpeed = function(speed) {
+Ghost.prototype.setCurrentSpeed = function (speed) {
     this._sprite.setCurrentSpeed(speed);
 };
 
-Ghost.prototype.getCurrentSpeed = function() {
+Ghost.prototype.getCurrentSpeed = function () {
     return this._sprite.getCurrentSpeed();
 };
 
-Ghost.prototype.setPosition = function(position) {
+Ghost.prototype.setPosition = function (position) {
     this._sprite.setPosition(position);
 };
 
-Ghost.prototype.getPosition = function() {
+Ghost.prototype.getPosition = function () {
     return this._sprite.getPosition();
 };
 
-Ghost.prototype.getX = function() {
+Ghost.prototype.getX = function () {
     return this._sprite.getX();
 };
 
-Ghost.prototype.getY = function() {
+Ghost.prototype.getY = function () {
     return this._sprite.getY();
 };
 
-Ghost.prototype.getLeft = function() {
+Ghost.prototype.getLeft = function () {
     return this._sprite.getLeft();
 };
 
-Ghost.prototype.getRight = function() {
+Ghost.prototype.getRight = function () {
     return this._sprite.getRight();
 };
-Ghost.prototype.getTop = function() {
+
+Ghost.prototype.getTop = function () {
     return this._sprite.getTop();
 };
 
-Ghost.prototype.getBottom = function() {
+Ghost.prototype.getBottom = function () {
     return this._sprite.getBottom();
 };
 
-Ghost.prototype.getWidth = function() {
+Ghost.prototype.getWidth = function () {
     return this._sprite.getWidth();
 };
 
-Ghost.prototype.getHeight = function() {
+Ghost.prototype.getHeight = function () {
     return this._sprite.getHeight();
 };
 
-Ghost.prototype.setStartPosition = function(position) {
+Ghost.prototype.setStartPosition = function (position) {
     this._sprite.setStartPosition(position);
 };
 
-Ghost.prototype.getStartPosition = function() {
+Ghost.prototype.getStartPosition = function () {
     return this._sprite.getStartPosition();
 };
 
-Ghost.prototype.placeToStartPosition = function() {
+Ghost.prototype.placeToStartPosition = function () {
     this.makeNormal();
     this._sprite.placeToStartPosition();
 };

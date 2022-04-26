@@ -7,11 +7,11 @@ function PacmanDiesPause(scene, game) {
     this._pacman = scene.getPacman();
 }
 
-PacmanDiesPause.prototype.setDuration = function(duration) {
+PacmanDiesPause.prototype.setDuration = function (duration) {
     this._duration = duration;
 };
 
-PacmanDiesPause.prototype.tick = function() {
+PacmanDiesPause.prototype.tick = function () {
     if (!this._active) {
         return;
     }
@@ -24,11 +24,11 @@ PacmanDiesPause.prototype.tick = function() {
     }
 };
 
-PacmanDiesPause.prototype.activate = function() {
+PacmanDiesPause.prototype.activate = function () {
     this._timer = 0;
     this._active = true;
 };
 
-PacmanDiesPause.prototype.isActive = function() {
+PacmanDiesPause.prototype.isActive = function () {
     return this._active;
 };
