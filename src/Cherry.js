@@ -11,55 +11,55 @@ function Cherry(scene) {
     this._rect = new Rect({ x: 0, y: 0, w: TILE_SIZE, h: TILE_SIZE });
 }
 
-Cherry.prototype.setAppearanceInterval = function(interval) {
+Cherry.prototype.setAppearanceInterval = function (interval) {
     this._appearanceInterval = interval;
 };
 
-Cherry.prototype.setVisibilityDuration = function(duration) {
+Cherry.prototype.setVisibilityDuration = function (duration) {
     this._visibilityDuration = duration;
 };
 
-Cherry.prototype.setEatenVisibilityDuation = function(duration) {
+Cherry.prototype.setEatenVisibilityDuation = function (duration) {
     this._eatenVisibilityDuration = duration;
 };
 
-Cherry.prototype.appear = function() {
+Cherry.prototype.appear = function () {
     this._visible = true;
     this._timer = 0;
 };
 
-Cherry.prototype.hide = function() {
+Cherry.prototype.hide = function () {
     this._visible = false;
     this._eaten = false;
     this._timer = 0;
 };
 
-Cherry.prototype.isVisible = function() {
+Cherry.prototype.isVisible = function () {
     return this._visible;
 };
 
-Cherry.prototype.isEaten = function() {
+Cherry.prototype.isEaten = function () {
     return this._eaten;
 };
 
-Cherry.prototype.setPosition = function(position) {
+Cherry.prototype.setPosition = function (position) {
     this._rect.setPosition(position);
 };
 
-Cherry.prototype.getPosition = function() {
+Cherry.prototype.getPosition = function () {
     return this._rect.getPosition();
 };
 
-Cherry.prototype.getRect = function() {
+Cherry.prototype.getRect = function () {
     return this._rect;
 };
 
-Cherry.prototype.eat = function() {
+Cherry.prototype.eat = function () {
     this._eaten = true;
     this._timer = 0;
 };
 
-Cherry.prototype.tick = function() {
+Cherry.prototype.tick = function () {
     if (this._scene.isPause()) {
         return;
     }
@@ -68,14 +68,16 @@ Cherry.prototype.tick = function() {
 
     if (!this.isVisible() && this._timer >= this._appearanceInterval) {
         this.appear();
-    } else if (this.isVisible() && !this.isEaten() && this._timer >= this._visibilityDuration) {
+    }
+    else if (this.isVisible() && !this.isEaten() && this._timer >= this._visibilityDuration) {
         this.hide();
-    } else if (this.isVisible() && this.isEaten() && this._timer >= this._eatenVisibilityDuration) {
+    }
+    else if (this.isVisible() && this.isEaten() && this._timer >= this._eatenVisibilityDuration) {
         this.hide();
     }
 };
 
-Cherry.prototype.draw = function(ctx) {
+Cherry.prototype.draw = function (ctx) {
     if (!this.isVisible()) {
         return;
     }
@@ -89,7 +91,8 @@ Cherry.prototype.draw = function(ctx) {
         x -= 4;
         y += 12;
         ctx.fillText(CHERRY_VALUE, x, y);
-    } else {
+    }
+    else {
         ctx.drawImage(ImageManager.getImage('cherry'), x, y);
     }
 };

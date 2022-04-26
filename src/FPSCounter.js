@@ -10,10 +10,10 @@ function FPSCounter() {
     document.body.appendChild(this._stats.domElement);
 }
 
-FPSCounter.prototype.begin = function() {
+FPSCounter.prototype.begin = function () {
     this._stats.begin();
 };
 
-FPSCounter.prototype.end = function() {
+FPSCounter.prototype.end = function () {
     this._stats.end();
 };

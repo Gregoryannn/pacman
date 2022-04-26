@@ -4,7 +4,7 @@ function BlinkTimer(duration) {
     this._visible = true;
 }
 
-BlinkTimer.prototype.tick = function() {
+BlinkTimer.prototype.tick = function () {
     this._timer++;
     if (this._timer == this._duration) {
         this._timer = 0;
@@ -12,10 +12,10 @@ BlinkTimer.prototype.tick = function() {
     }
 };
 
-BlinkTimer.prototype.setDuration = function(duration) {
+BlinkTimer.prototype.setDuration = function (duration) {
     this._duration = duration;
 };
 
-BlinkTimer.prototype.isVisible = function() {
+BlinkTimer.prototype.isVisible = function () {
     return this._visible;
 };
